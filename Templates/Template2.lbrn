@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<LightBurnProject AppVersion="1.5.06" FormatVersion="0" MaterialHeight="0" MirrorX="False" MirrorY="False">
+    <Thumbnail Source="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"/>
+    <VariableText>
+        <Start Value="0"/>
+        <End Value="36"/>
+        <Current Value="0"/>
+        <Increment Value="1"/>
+        <AutoAdvance Value="1"/>
+        <Filename Value="C:/DIY/Laser/Projekte/TCP/Tenniscamp TC Pürgen - Sheet1.csv"/>
+    </VariableText>
+    <UIPrefs>
+        <Optimize_ByLayer Value="0"/>
+        <Optimize_ByGroup Value="-1"/>
+        <Optimize_ByPriority Value="1"/>
+        <Optimize_WhichDirection Value="0"/>
+        <Optimize_InnerToOuter Value="1"/>
+        <Optimize_ByDirection Value="0"/>
+        <Optimize_ReduceTravel Value="1"/>
+        <Optimize_HideBacklash Value="0"/>
+        <Optimize_ReduceDirChanges Value="0"/>
+        <Optimize_ChooseCorners Value="0"/>
+        <Optimize_AllowReverse Value="1"/>
+        <Optimize_RemoveOverlaps Value="0"/>
+        <Optimize_OptimalEntryPoint Value="1"/>
+        <Optimize_OverlapDist Value="0.025"/>
+    </UIPrefs>
+    <CutSetting type="Scan">
+        <index Value="0"/>
+        <name Value="Text unten"/>
+        <minPower Value="10"/>
+        <maxPower Value="70"/>
+        <maxPower2 Value="20"/>
+        <speed Value="28.3333"/>
+        <overscanPercent Value="1.5"/>
+        <forceConstantPower Value="1"/>
+        <priority Value="0"/>
+        <tabCount Value="1"/>
+        <tabCountMax Value="1"/>
+    </CutSetting>
+    <CutSetting type="Scan">
+        <index Value="11"/>
+        <name Value="Text oben"/>
+        <minPower Value="10"/>
+        <maxPower Value="70"/>
+        <maxPower2 Value="20"/>
+        <speed Value="28.3333"/>
+        <overscanPercent Value="1.5"/>
+        <priority Value="1"/>
+        <tabCount Value="1"/>
+        <tabCountMax Value="1"/>
+    </CutSetting>
+    <CutSetting type="Scan">
+        <index Value="12"/>
+        <name Value="Text Mitte"/>
+        <minPower Value="10"/>
+        <maxPower Value="70"/>
+        <maxPower2 Value="20"/>
+        <speed Value="28.3333"/>
+        <overscanPercent Value="1.5"/>
+        <forceConstantPower Value="1"/>
+        <priority Value="0"/>
+        <tabCount Value="1"/>
+        <tabCountMax Value="1"/>
+	</CutSetting>
+    <Shape Type="Text" CutIndex="11" Font="Lato,-1,100,5,50,0,0,0,0,0" Str="Ich Liebe Dich!" H="7.83008" LS="0" LnS="0" Ah="1" Av="2" OldWidth="1" Weld="1" ForceCase="1" VariableOffset="1" HasBackupPath="0">
+        <XForm>-1.6292068e-07 -1 1 -1.6292068e-07 133.19571 122.00000</XForm>
+    </Shape>
+    <Shape Type="Text" CutIndex="0" Font="Lato,-1,100,5,50,0,0,0,0,0" Str="Nadine" H="7.8298159" LS="0" LnS="0" Ah="1" Av="0" OldWidth="1" Weld="1" ForceCase="1" VariableOffset="1" HasBackupPath="0">
+        <XForm>-1.6292068e-07 -1 1 -1.6292068e-07 58.199532 122.00000</XForm>
+    </Shape>
+    <Shape Type="Text" CutIndex="12" Font="Lato,-1,100,5,50,0,0,0,0,0" Str="Nadine" H="7.8298159" LS="0" LnS="0" Ah="1" Av="0" OldWidth="1" Weld="1" ForceCase="1" VariableOffset="1" HasBackupPath="0">
+        <XForm>-1.221905e-07 -0.74999982 0.74999982 -1.221905e-07 93 122</XForm>
+    </Shape>
+    <Notes ShowOnLoad="0" Notes=""/>
+</LightBurnProject>
