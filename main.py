@@ -28,6 +28,7 @@ maxhoehelb = int(configdict["Flaschenhoehe"])
 standardTemplate = configdict["Standardtemplate"]
 delimiter = configdict["delimiterFuerConfig"]
 pfadzulightburn = configdict["PfadZuLightburn"]
+orderid = configdict["ID-Spaltenname"]
 
 profiling = False
 
@@ -241,9 +242,9 @@ if __name__ == "__main__":
         if not nodownload == "True":
             Util.Gather.downloadAndUnpack(
                 item[zipdownloadspalte],
-                item["order-id"],
+                item[orderid],
             )
-        ListOfOrdersStillToDo.append(item["order-id"])
+        ListOfOrdersStillToDo.append(item[orderid])
     currentPatternImage = None
 
     while len(ListOfOrdersStillToDo) != 0:
