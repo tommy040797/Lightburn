@@ -170,8 +170,6 @@ def select(currentOrder):
         else:
             color = "gray0"
         if fonts in font.families():
-            print(fonts)
-            print(font.families())
             fontnotfound.configure(text="")
             textunterbild.configure(text=textBelow, fg=color, font=(fonts,))
             textueberbild.configure(text=textAbove, fg=color, font=(fonts,))
