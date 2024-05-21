@@ -12,7 +12,7 @@ import os
 import cProfile as profile
 import pstats
 
-# TODO:  verfügbare aktionen für config dokumentieren, UI Ordnen, regex für filter, farbauswahl bei kein bild, Original breakpoint, invertieren, schieberegler helligkeit kontrast gamma, thresholding methode
+# TODO:  verfügbare aktionen für config dokumentieren, UI Ordnen, regex für filter, invertieren, schieberegler helligkeit kontrast gamma
 
 configdict = Util.Config.getConfig()
 
@@ -170,9 +170,11 @@ def select(currentOrder):
         else:
             color = "gray0"
         if fonts in font.families():
+            print(fonts)
+            print(font.families())
             fontnotfound.configure(text="")
-            textunterbild.configure(text=textBelow, fg=color, font=fonts)
-            textueberbild.configure(text=textAbove, fg=color, font=fonts)
+            textunterbild.configure(text=textBelow, fg=color, font=(fonts,))
+            textueberbild.configure(text=textAbove, fg=color, font=(fonts,))
         else:
             fontnotfound.configure(
                 text="SCHRIFTART NICHT GEFUNDEN, Sieht eventuell anders aus"
