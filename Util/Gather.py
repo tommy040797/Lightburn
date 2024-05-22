@@ -29,7 +29,6 @@ def parseCsv(csvname, idspalte):
 
 def downloadZip(url):
     response = requests.get(url)
-    print(type(response))
     if not response.status_code == 200:
         print("DOWNLOAD FEHLGESCHLAGEN")
         return None
