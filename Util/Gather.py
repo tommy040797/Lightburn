@@ -30,7 +30,10 @@ def parseCsv(csvname, idspalte):
 def downloadZip(url):
     response = requests.get(url)
     if not response.status_code == 200:
-        print("DOWNLOAD FEHLGESCHLAGEN")
+        print(
+            "DOWNLOAD FEHLGESCHLAGEN. Vermutlich ist der Download Link abgelaufen ERROR CODE: "
+            + response.status_code
+        )
         return None
     return response.content
 
