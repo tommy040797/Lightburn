@@ -28,7 +28,7 @@ maxhoehelb = int(configdict["Flaschenhoehe"])
 standardTemplate = configdict["Standardtemplate"]
 delimiter = configdict["delimiterFuerConfig"]
 pfadzulightburn = configdict["PfadZuLightburn"]
-orderid = configdict["ID-Spaltenname"]
+orderIdSpaltenName = configdict["ID-Spaltenname"]
 
 profiling = False
 
@@ -61,23 +61,31 @@ def bildauswahl(bild):
     global currentPatternImage
     if Util.Jsonprocessing.getIfOnlyText(ordernumber.get()):
         return None
-    vorschaubildpattern = Image.open(bild)
-    size = Util.Imageprocessing.getscale(
-        anzeigenzielbreite, anzeigenmaxhöhe, vorschaubildpattern
-    )
-    vorschaubildpattern = vorschaubildpattern.resize(size, Image.Resampling.BILINEAR)
-    vorschaubildpattern = Util.Imageprocessing.schwarzweis(
-        colorscheme.get(), vorschaubildpattern, thresh.get()
-    )
-    size = Util.Imageprocessing.getscale(
-        anzeigenzielbreite, anzeigenmaxhöhe, vorschaubildpattern
-    )
-    vorschaubildpattern = vorschaubildpattern.resize(size, Image.Resampling.BILINEAR)
-    # zwischenablage des bilds zum geben an process
-    currentPatternImage = vorschaubildpattern
-    vorschaubildpattern = ImageTk.PhotoImage(vorschaubildpattern)
-    patternvorschauUser.configure(image=vorschaubildpattern)
-    patternvorschauUser.image = vorschaubildpattern
+    try:
+        vorschaubildpattern = Image.open(bild)
+        size = Util.Imageprocessing.getscale(
+            anzeigenzielbreite, anzeigenmaxhöhe, vorschaubildpattern
+        )
+        vorschaubildpattern = vorschaubildpattern.resize(
+            size, Image.Resampling.BILINEAR
+        )
+        vorschaubildpattern = Util.Imageprocessing.schwarzweis(
+            colorscheme.get(), vorschaubildpattern, thresh.get()
+        )
+        size = Util.Imageprocessing.getscale(
+            anzeigenzielbreite, anzeigenmaxhöhe, vorschaubildpattern
+        )
+        vorschaubildpattern = vorschaubildpattern.resize(
+            size, Image.Resampling.BILINEAR
+        )
+        # zwischenablage des bilds zum geben an process
+        currentPatternImage = vorschaubildpattern
+        vorschaubildpattern = ImageTk.PhotoImage(vorschaubildpattern)
+        patternvorschauUser.configure(image=vorschaubildpattern)
+        patternvorschauUser.image = vorschaubildpattern
+    except:
+        print(bild + " wurde nicht gefunden, bitte überprüfen")
+        return
 
 
 # war super dumm eine riesen update methode zu machen ............
@@ -237,14 +245,14 @@ if __name__ == "__main__":
     ]
     currentOrder = ""
     patternliste = ["Keine Auswahl"]
-    csv = Util.Gather.parseCsv(inputfile)
+    csv = Util.Gather.parseCsv(inputfile, orderIdSpaltenName)
     for item in csv:
         if not nodownload == "True":
             Util.Gather.downloadAndUnpack(
                 item[zipdownloadspalte],
-                item[orderid],
+                item[orderIdSpaltenName],
             )
-        ListOfOrdersStillToDo.append(item[orderid])
+        ListOfOrdersStillToDo.append(item[orderIdSpaltenName])
     currentPatternImage = None
 
     while len(ListOfOrdersStillToDo) != 0:

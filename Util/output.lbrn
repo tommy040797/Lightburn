@@ -65,14 +65,14 @@
         <ditherMode Value="threshold" />
         <dpi Value="282" />
     </CutSetting_Img>
-    <Shape Type="Text" CutIndex="11" Font="Rock Salt" Str="" H="7.83008" LS="0" LnS="0" Ah="1" Av="2" OldWidth="1" Weld="1" ForceCase="1" VariableOffset="1" HasBackupPath="0">
+    <Shape Type="Text" CutIndex="11" Font="Lato" Str="" H="7.83008" LS="0" LnS="0" Ah="1" Av="2" OldWidth="1" Weld="1" ForceCase="1" VariableOffset="1" HasBackupPath="0">
         <XForm>-1.6292068e-07 -1.0 1.0 -1.6292068e-07 133.19571 122.0</XForm>
     </Shape>
-    <Shape Type="Text" CutIndex="0" Font="Rock Salt" Str="People = Shit" H="7.8298159" LS="0" LnS="0" Ah="1" Av="0" OldWidth="1" Weld="1" ForceCase="1" VariableOffset="1" HasBackupPath="0">
-        <XForm>0.01654632648302367 -0.99986310016919 0.99986310016919 0.01654632648302367 58.199532 122.0</XForm>
+    <Shape Type="Text" CutIndex="0" Font="Lato" Str="Alexandra" H="7.8298159" LS="0" LnS="0" Ah="1" Av="0" OldWidth="1" Weld="1" ForceCase="1" VariableOffset="1" HasBackupPath="0">
+        <XForm>-1.6292068e-07 -1.0 1.0 -1.6292068e-07 58.199532 122.0</XForm>
     </Shape>
-    <Shape Type="Bitmap" CutIndex="0" W="80" H="66" Gamma="1" Contrast="0" Brightness="0" EnhanceAmount="0" EnhanceRadius="0" EnhanceDenoise="0" File="C:\Code\lightburn\Util\pattern.png" Data="">
-        <XForm>-0.22182023470558704 -0.7164464484350457 0.7164464484350457 -0.22182023470558704 93.0 122.0</XForm>
+    <Shape Type="Bitmap" CutIndex="0" W="80" H="75" Gamma="1" Contrast="0" Brightness="0" EnhanceAmount="0" EnhanceRadius="0" EnhanceDenoise="0" File="C:\Code\lightburn\Util\pattern.png" Data="">
+        <XForm>0.0 -0.74999982 0.74999982 0.0 93.0 122.0</XForm>
     </Shape>
     <Notes ShowOnLoad="0" Notes="" />
 </LightBurnProject>
