@@ -4,7 +4,7 @@ import Util.Gather
 import Util.Imageprocessing
 import Util.Order as Orders
 import tkinter as tk
-from tkinter import font
+from tkinter import font as f
 from PIL import ImageTk, Image
 import subprocess
 import Util.Jsonprocessing
@@ -12,7 +12,7 @@ import os
 import cProfile as profile
 import pstats
 
-# TODO:  verfügbare aktionen für config dokumentieren, UI Ordnen, regex für filter, invertieren, schieberegler helligkeit kontrast gamma
+# TODO:  verfügbare aktionen für config dokumentieren, UI Ordnen, regex für filter, invertieren, schieberegler helligkeit kontrast gamma, template name egal machen, template nicht da fehlermeldungm, progress anzeige für download
 
 configdict = Util.Config.getConfig()
 
@@ -116,13 +116,15 @@ def select(currentOrder):
         patternvorschauUser.configure(
             image="", text=Util.Jsonprocessing.getSecondLine(currentOrder)
         )
+
         fonts = Util.Jsonprocessing.getFont(currentOrder)
         color = Util.Jsonprocessing.getEngravingColor(currentOrder)
         if color == "Silber":
             color = "dim gray"
         else:
             color = "gray0"
-        if fonts in font.families():
+        if fonts in f.families():
+            fonts = f.Font(family=fonts)
             fontnotfound.configure(text="")
             patternvorschauUser.configure(
                 image="",
@@ -178,10 +180,11 @@ def select(currentOrder):
             color = "dim gray"
         else:
             color = "gray0"
-        if fonts in font.families():
+        if fonts in f.families():
+            fonts = f.Font(family=fonts)
             fontnotfound.configure(text="")
-            textunterbild.configure(text=textBelow, fg=color, font=(fonts,))
-            textueberbild.configure(text=textAbove, fg=color, font=(fonts,))
+            textunterbild.configure(text=textBelow, fg=color, font=fonts)
+            textueberbild.configure(text=textAbove, fg=color, font=fonts)
         else:
             fontnotfound.configure(
                 text="SCHRIFTART NICHT GEFUNDEN, Sieht eventuell anders aus"
@@ -239,9 +242,9 @@ if __name__ == "__main__":
         "Cropped Original",
     ]
     ListOfThreshholding = [
+        "Otsu's thresholding after Gaussian filtering",
         "Adaptive Mean Threshholding",
         "Adaptive Gaussian Thresholding",
-        "Otsu's thresholding after Gaussian filtering",
     ]
     currentOrder = ""
     patternliste = ["Keine Auswahl"]
@@ -272,7 +275,7 @@ if __name__ == "__main__":
         comment = tk.Label(window, text="")
         comment.pack()
         thresh = tk.StringVar()
-        thresh.set("Adaptive Gaussian Thresholding")
+        thresh.set("Otsu's thresholding after Gaussian filtering")
 
         # Vorschaubild für den User
         vorschaubildUser = tk.Label(window)
