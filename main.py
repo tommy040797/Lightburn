@@ -12,7 +12,7 @@ import os
 import cProfile as profile
 import pstats
 
-# TODO:  verfügbare aktionen für config dokumentieren, UI Ordnen, regex für filter, invertieren, schieberegler helligkeit kontrast gamma, template name egal machen, template nicht da fehlermeldungm, progress anzeige für download
+# TODO:  verfügbare aktionen für config dokumentieren, UI Ordnen, regex für filter, invertieren, schieberegler helligkeit kontrast gamma, template name egal machen, template nicht da fehlermeldung
 
 configdict = Util.Config.getConfig()
 
@@ -205,7 +205,7 @@ def update_dropdown():
 def process():
     global order
     global currentPatternImage
-    window.destroy()
+
     # ListOfOrdersStillToDo.remove(ordernumber.get())
     if Util.Jsonprocessing.getIfOnlyText(ordernumber.get()):
         currentPatternImage = None
@@ -225,6 +225,8 @@ def process():
             str(os.getcwd()) + "\\Util\\output.lbrn",
         ]
     )
+    window.update()
+    # window.destroy()
 
 
 if __name__ == "__main__":
@@ -249,12 +251,15 @@ if __name__ == "__main__":
     currentOrder = ""
     patternliste = ["Keine Auswahl"]
     csv = Util.Gather.parseCsv(inputfile, orderIdSpaltenName)
+    i = 1
     for item in csv:
         if not nodownload == "True":
             Util.Gather.downloadAndUnpack(
                 item[zipdownloadspalte],
                 item[orderIdSpaltenName],
             )
+            print("Download: " + str(i) + " von " + str(len(csv)))
+            i += 1
         ListOfOrdersStillToDo.append(item[orderIdSpaltenName])
     currentPatternImage = None
 
