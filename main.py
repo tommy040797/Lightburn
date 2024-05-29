@@ -219,7 +219,7 @@ def process():
         maxhoehelb,
         currentPatternImage,
     )
-    subprocess.call(
+    subprocess.Popen(
         [
             pfadzulightburn,
             str(os.getcwd()) + "\\Util\\output.lbrn",

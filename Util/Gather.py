@@ -14,8 +14,9 @@ def parseCsv(csvname, idspalte):
     dictlist = []
     with open(csvname, newline="", encoding="utf8") as csvfile:
         spamreader = csv.DictReader(csvfile, delimiter="\t")
+        counter = 1
         for c in spamreader:
-            counter = 1
+
             erg = multivalueCompare(liste, c)
             if erg == True:
                 if any(x[idspalte] == c[idspalte] for x in dictlist):

@@ -102,6 +102,8 @@ def processxml(template, delimiter, orderid, targetbreitelb, maxhoehelb, pattern
                     silber, schwarz = Util.Config.getLaserColors()
                     if farbe == "Silber":
                         erg = silber[pfad.tag]
+                    elif farbe == "Schwarz":
+                        erg = schwarz[pfad.tag]
                     eval(key[0]).set(key[1], str(erg))
                 # xml.write("test.xml")
             if not patternImg == None:
