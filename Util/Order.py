@@ -11,17 +11,30 @@ import math
 
 
 def processxml(template, delimiter, orderid, targetbreitelb, maxhoehelb, patternImg):
-    imageDict, _ = Util.Config.getXMLConfig(template.split(".")[0])
+    try:
+        imageDict, _ = Util.Config.getXMLConfig(template.split(".")[0])
+    except:
+        print("Problem beim Templateconfig lesen")
     rest = Util.Config.getConfig()
     keys = []
     keylist = list(imageDict.keys())
     valuelist = list(imageDict.values())
-    xml = Util.Gather.getXML(template)
+    try:
+        xml = Util.Gather.getXML(template)
+    except:
+        print("lightburn template file konnte nicht geladen werden")
+        return
     root = xml.getroot()
-    for key in keylist:
-        keys.append(key.split(delimiter))
+    try:
+        for key in keylist:
+            keys.append(key.split(delimiter))
+    except:
+        print("Problem beim Parsen der Keys der Templateconfig")
 
     file = glob.glob("Zips/" + orderid + "/*.json")
+    if file == None:
+        print("JSON konnte nicht gelesen werden")
+        return
     # iteriere config liste durch
     for key in keys:
         try:
