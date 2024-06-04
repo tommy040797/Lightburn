@@ -36,7 +36,7 @@ except:
     )
     quit()
 
-
+bildistda = True
 profiling = False
 
 
@@ -68,41 +68,50 @@ def colorchange(dummy):
         vorschaubildpattern = ImageTk.PhotoImage(vorschaubildpattern)
         patternvorschauUser.configure(image=vorschaubildpattern)
         patternvorschauUser.image = vorschaubildpattern
-    except:
-        print(patternName + " wurde nicht gefunden, bitte überprüfen")
+    except Exception as e:
+        print(patternName + " wurde nicht gefunden, bitte überprüfen " + e)
         return
 
 
 def bildauswahl(dummy):
+    global bildistda
     global currentPatternImage
     if Util.Jsonprocessing.getIfOnlyText(ordernumber.get()):
         return None
-    try:
-        patternName = pattern.get()
-        vorschaubildpattern = Image.open(patternName)
-        size = Util.Imageprocessing.getscale(
-            anzeigenzielbreite, anzeigenmaxhöhe, vorschaubildpattern
-        )
-        vorschaubildpattern = vorschaubildpattern.resize(
-            size, Image.Resampling.BILINEAR
-        )
-        vorschaubildpattern = Util.Imageprocessing.schwarzweis(
-            colorscheme.get(), vorschaubildpattern, thresh.get()
-        )
-        size = Util.Imageprocessing.getscale(
-            anzeigenzielbreite, anzeigenmaxhöhe, vorschaubildpattern
-        )
-        vorschaubildpattern = vorschaubildpattern.resize(
-            size, Image.Resampling.BILINEAR
-        )
-        # zwischenablage des bilds zum geben an process
-        currentPatternImage = vorschaubildpattern
-        vorschaubildpattern = ImageTk.PhotoImage(vorschaubildpattern)
-        patternvorschauUser.configure(image=vorschaubildpattern)
-        patternvorschauUser.image = vorschaubildpattern
-    except:
-        print(patternName + " wurde nicht gefunden, bitte überprüfen")
-        return
+    erg, hits = Util.Jsonprocessing.getOnlyPattern(ordernumber.get(), delimiter)
+    if hits == 0:
+        bildistda = False
+        patternvorschauUser.configure(image=None)
+        patternvorschauUser.image = None
+        textHandlingGUI(ordernumber.get())
+    else:
+        bildistda = True
+        try:
+            patternName = pattern.get()
+            vorschaubildpattern = Image.open(patternName)
+            size = Util.Imageprocessing.getscale(
+                anzeigenzielbreite, anzeigenmaxhöhe, vorschaubildpattern
+            )
+            vorschaubildpattern = vorschaubildpattern.resize(
+                size, Image.Resampling.BILINEAR
+            )
+            vorschaubildpattern = Util.Imageprocessing.schwarzweis(
+                colorscheme.get(), vorschaubildpattern, thresh.get()
+            )
+            size = Util.Imageprocessing.getscale(
+                anzeigenzielbreite, anzeigenmaxhöhe, vorschaubildpattern
+            )
+            vorschaubildpattern = vorschaubildpattern.resize(
+                size, Image.Resampling.BILINEAR
+            )
+            # zwischenablage des bilds zum geben an process
+            currentPatternImage = vorschaubildpattern
+            vorschaubildpattern = ImageTk.PhotoImage(vorschaubildpattern)
+            patternvorschauUser.configure(image=vorschaubildpattern)
+            patternvorschauUser.image = vorschaubildpattern
+        except Exception as e:
+            print(patternName + " wurde nicht gefunden, bitte überprüfen " + e)
+            return
 
 
 def vorschaubild(currentOrder):
@@ -223,12 +232,13 @@ def select(currentOrder):
         # bildhandling wenn bilder vorhanden sind
         previewName = Util.Jsonprocessing.getPreviewImage(currentOrder)
         patternliste, hits = Util.Jsonprocessing.getOnlyPattern(currentOrder, delimiter)
-        update_dropdown()
-        pattern.set(patternliste[-1])
+        if not hits == 0:
+            update_dropdown()
+            pattern.set(patternliste[-1])
 
         patternName = pattern.get()
-        vorschaubild(currentOrder)
         bildauswahl(patternName)
+        vorschaubild(currentOrder)
 
         # texthandling
         if hits > 1:
@@ -257,10 +267,11 @@ def process():
     global currentPatternImage
 
     # ListOfOrdersStillToDo.remove(ordernumber.get())
-    if Util.Jsonprocessing.getIfOnlyText(ordernumber.get()):
+    if Util.Jsonprocessing.getIfOnlyText(ordernumber.get()) or bildistda == False:
         currentPatternImage = None
     else:
         currentPatternImage.save("Util/pattern.png")
+
     Orders.processxml(
         template.get(),
         delimiter,
