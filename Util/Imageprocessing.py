@@ -2,6 +2,7 @@
 from PIL import Image
 import cv2 as cv
 import numpy as np
+from PIL import ImageOps
 
 
 def getscale(targetwidth, maxhoehe, img):
@@ -61,7 +62,7 @@ def schwarzweis(cholorscheme, vorschaubildpattern, thresh):
             pass
         # imagetk photoimage nimmt kein schwarzweisalpha bild, sondern nur rgba
         vorschaubildpattern = vorschaubildpattern.convert("LA")
-        vorschaubildpattern = crop(vorschaubildpattern)
+        vorschaubildpattern = cropImage(vorschaubildpattern)
         vorschaubildpattern = vorschaubildpattern.convert("RGBA")
         vorschaubildpattern = weisDurchsichtig(vorschaubildpattern)
     elif cholorscheme == "Schwarz-Weiß Dithering":
@@ -71,7 +72,7 @@ def schwarzweis(cholorscheme, vorschaubildpattern, thresh):
         except:
             pass
         vorschaubildpattern = vorschaubildpattern.convert("1")
-        vorschaubildpattern = cropAlt(vorschaubildpattern)
+        vorschaubildpattern = cropImage(vorschaubildpattern)
         vorschaubildpattern = vorschaubildpattern.convert("RGBA")
 
         vorschaubildpattern = weisDurchsichtig(vorschaubildpattern)
@@ -83,7 +84,7 @@ def schwarzweis(cholorscheme, vorschaubildpattern, thresh):
         vorschaubildpattern = vorschaubildpattern.convert("RGB")
         array = np.array(vorschaubildpattern)
         array = cv.cvtColor(array, cv.COLOR_BGR2GRAY)
-        array = cropAltAlt(array)
+        # array = cropImageAltAlt(array)
         match thresh:
             case "Global Thresholding":
                 # vorschaubildpattern = cv.threshold(array, 127, 255, cv.THRESH_BINARY)
@@ -106,16 +107,17 @@ def schwarzweis(cholorscheme, vorschaubildpattern, thresh):
                     array, 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C, cv.THRESH_BINARY, 11, 2
                 )
         vorschaubildpattern = Image.fromarray(vorschaubildpattern)
-        vorschaubildpattern = crop(vorschaubildpattern)
+        vorschaubildpattern = cropImage(vorschaubildpattern)
         vorschaubildpattern = vorschaubildpattern.convert("RGBA")
         vorschaubildpattern = weisDurchsichtig(vorschaubildpattern)
     elif cholorscheme == "Cropped Original":
-        vorschaubildpattern = crop(vorschaubildpattern)
+        vorschaubildpattern = cropImage(vorschaubildpattern)
+        vorschaubildpattern = weisDurchsichtig(vorschaubildpattern)
 
     return vorschaubildpattern
 
 
-def crop(img):
+def cropImageDeprecated(img):
     array = np.array(img)
     try:
         blacky, blackx, dummy = np.where(array != 255)
@@ -130,7 +132,7 @@ def crop(img):
     return im_pil
 
 
-def cropAlt(img):
+def cropImageAlt(img):
     array = np.array(img)
     try:
         blacky, blackx, dummy = np.where(array != True)
@@ -145,7 +147,7 @@ def cropAlt(img):
     return im_pil
 
 
-def cropAltAlt(img):
+def cropImageAltAlt(img):
     array = img
     try:
         blacky, blackx, dummy = np.where(array != 255)
@@ -157,3 +159,12 @@ def cropAltAlt(img):
 
     img = array[top:bottom, left:right]
     return img
+
+
+def cropImage(img):
+    invert_im = img.convert("RGB")
+    invert_im = ImageOps.invert(invert_im)
+    imageBox = invert_im.getbbox()
+    cropped = img.crop(imageBox)
+    cropped = cropped.convert("RGBA")
+    return cropped

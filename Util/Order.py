@@ -123,9 +123,21 @@ def processxml(template, delimiter, orderid, targetbreitelb, maxhoehelb, pattern
                 eval(keys[0][0]).set(
                     keys[0][1], str(os.getcwd()) + "\\Util\\pattern.png"
                 )
-            xml.write("Util/output.lbrn")
+            try:
+                xml.write("Util/output.lbrn")
+            except:
+                print(
+                    "lightburn File konnte nicht geschrieben werden, evtl. Schreibgeschützt, evtl. PC neu starten"
+                )
+                return
         except:
-            print(key + "hat einen error ausgeworfen")
+            try:
+                print(
+                    key[0]
+                    + "hat einen error ausgeworfen, bitte anderes Template verwenden oder Christian kontaktieren"
+                )
+            except:
+                print("schwerwiegender Fehler, evtl Surrogate Pozesse schließen")
 
     # print(keys)
 

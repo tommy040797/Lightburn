@@ -178,6 +178,23 @@ def getIfOnlyText(orderid):
             return True
 
 
+def checkIfImage(orderid):
+    gui = Util.Config.getGuiConfig()
+    file = glob.glob("Zips/" + orderid + "/*.json")
+    with open(file[0], "r", encoding="UTF-8") as f:
+        data = json.load(f)
+        try:
+            childerin1 = eval(gui["TextOnly1"])
+            childerin2 = eval(gui["TextOnly2"])
+            childerin3 = eval(gui["TextOnly3"])
+        except:
+            return False
+        if childerin1 == "" and childerin2 == "" and childerin3 == "":
+            return False
+        else:
+            return True
+
+
 def getFirstLine(orderid):
     gui = Util.Config.getGuiConfig()
 
