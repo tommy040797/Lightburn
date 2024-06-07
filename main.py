@@ -89,15 +89,17 @@ def bildauswahl(dummy):
         try:
             patternName = pattern.get()
             vorschaubildpattern = Image.open(patternName)
-            size = Util.Imageprocessing.getscale(
+            """size = Util.Imageprocessing.getscale(
                 anzeigenzielbreite, anzeigenmaxhöhe, vorschaubildpattern
             )
             vorschaubildpattern = vorschaubildpattern.resize(
                 size, Image.Resampling.BILINEAR
-            )
+            )"""
+
             vorschaubildpattern = Util.Imageprocessing.schwarzweis(
                 colorscheme.get(), vorschaubildpattern, thresh.get()
             )
+            currentPatternImage = vorschaubildpattern
             size = Util.Imageprocessing.getscale(
                 anzeigenzielbreite, anzeigenmaxhöhe, vorschaubildpattern
             )
@@ -105,7 +107,7 @@ def bildauswahl(dummy):
                 size, Image.Resampling.BILINEAR
             )
             # zwischenablage des bilds zum geben an process
-            currentPatternImage = vorschaubildpattern
+            # currentPatternImage = vorschaubildpattern
             vorschaubildpattern = ImageTk.PhotoImage(vorschaubildpattern)
             patternvorschauUser.configure(image=vorschaubildpattern)
             patternvorschauUser.image = vorschaubildpattern
