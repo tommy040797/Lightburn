@@ -41,26 +41,29 @@ profiling = False
 
 
 def invert():
-    global currentPatternImage
+    try:
+        global currentPatternImage
 
-    asin = Util.Jsonprocessing.getAsin(ordernumber.get())
-    colordict = Util.Config.getColorCodes()
+        asin = Util.Jsonprocessing.getAsin(ordernumber.get())
+        colordict = Util.Config.getColorCodes()
 
-    if colordict[asin] == "#000000":
-        currentPatternImage = Util.Imageprocessing.invertAlt(currentPatternImage)
-    else:
-        currentPatternImage = Util.Imageprocessing.invert(currentPatternImage)
+        if colordict[asin] == "#000000":
+            currentPatternImage = Util.Imageprocessing.invertAlt(currentPatternImage)
+        else:
+            currentPatternImage = Util.Imageprocessing.invert(currentPatternImage)
 
-    weitergebimage = currentPatternImage
-    size = Util.Imageprocessing.getscale(
-        anzeigenzielbreite, anzeigenmaxhöhe, weitergebimage
-    )
-    vorschaubildpattern = weitergebimage.resize(size, Image.Resampling.BILINEAR)
-    # zwischenablage des bilds zum geben an process
-    # currentPatternImage = vorschaubildpattern
-    vorschaubildpattern = ImageTk.PhotoImage(vorschaubildpattern)
-    patternvorschauUser.configure(image=vorschaubildpattern)
-    patternvorschauUser.image = vorschaubildpattern
+        weitergebimage = currentPatternImage
+        size = Util.Imageprocessing.getscale(
+            anzeigenzielbreite, anzeigenmaxhöhe, weitergebimage
+        )
+        vorschaubildpattern = weitergebimage.resize(size, Image.Resampling.BILINEAR)
+        # zwischenablage des bilds zum geben an process
+        # currentPatternImage = vorschaubildpattern
+        vorschaubildpattern = ImageTk.PhotoImage(vorschaubildpattern)
+        patternvorschauUser.configure(image=vorschaubildpattern)
+        patternvorschauUser.image = vorschaubildpattern
+    except:
+        print("Problem beim Funktionsaufruf des invertierens")
 
 
 def bildauswahl(dummy):
