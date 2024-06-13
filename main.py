@@ -40,37 +40,27 @@ bildistda = True
 profiling = False
 
 
-# nicht in use
-def colorchange(dummy):
+def invert():
     global currentPatternImage
-    if Util.Jsonprocessing.getIfOnlyText(ordernumber.get()):
-        return None
-    patternName = pattern.get()
-    try:
-        vorschaubildpattern = Image.open(patternName)
-        size = Util.Imageprocessing.getscale(
-            anzeigenzielbreite, anzeigenmaxhöhe, vorschaubildpattern
-        )
-        vorschaubildpattern = vorschaubildpattern.resize(
-            size, Image.Resampling.BILINEAR
-        )
-        vorschaubildpattern = Util.Imageprocessing.schwarzweis(
-            colorscheme.get(), vorschaubildpattern, thresh.get()
-        )
-        size = Util.Imageprocessing.getscale(
-            anzeigenzielbreite, anzeigenmaxhöhe, vorschaubildpattern
-        )
-        vorschaubildpattern = vorschaubildpattern.resize(
-            size, Image.Resampling.BILINEAR
-        )
-        # zwischenablage des bilds zum geben an process
-        currentPatternImage = vorschaubildpattern
-        vorschaubildpattern = ImageTk.PhotoImage(vorschaubildpattern)
-        patternvorschauUser.configure(image=vorschaubildpattern)
-        patternvorschauUser.image = vorschaubildpattern
-    except Exception as e:
-        print(patternName + " wurde nicht gefunden, bitte überprüfen " + e)
-        return
+
+    asin = Util.Jsonprocessing.getAsin(ordernumber.get())
+    colordict = Util.Config.getColorCodes()
+
+    if colordict[asin] == "#000000":
+        currentPatternImage = Util.Imageprocessing.invertAlt(currentPatternImage)
+    else:
+        currentPatternImage = Util.Imageprocessing.invert(currentPatternImage)
+
+    weitergebimage = currentPatternImage
+    size = Util.Imageprocessing.getscale(
+        anzeigenzielbreite, anzeigenmaxhöhe, weitergebimage
+    )
+    vorschaubildpattern = weitergebimage.resize(size, Image.Resampling.BILINEAR)
+    # zwischenablage des bilds zum geben an process
+    # currentPatternImage = vorschaubildpattern
+    vorschaubildpattern = ImageTk.PhotoImage(vorschaubildpattern)
+    patternvorschauUser.configure(image=vorschaubildpattern)
+    patternvorschauUser.image = vorschaubildpattern
 
 
 def bildauswahl(dummy):
@@ -89,17 +79,18 @@ def bildauswahl(dummy):
         try:
             patternName = pattern.get()
             vorschaubildpattern = Image.open(patternName)
-            """size = Util.Imageprocessing.getscale(
-                anzeigenzielbreite, anzeigenmaxhöhe, vorschaubildpattern
-            )
-            vorschaubildpattern = vorschaubildpattern.resize(
-                size, Image.Resampling.BILINEAR
-            )"""
-
             vorschaubildpattern = Util.Imageprocessing.schwarzweis(
                 colorscheme.get(), vorschaubildpattern, thresh.get()
             )
             currentPatternImage = vorschaubildpattern
+            asin = Util.Jsonprocessing.getAsin(ordernumber.get())
+            colordict = Util.Config.getColorCodes()
+
+            if colordict[asin] == "#000000":
+                vorschaubildpattern = Util.Imageprocessing.invertAlt(
+                    vorschaubildpattern
+                )
+                currentPatternImage = vorschaubildpattern
             size = Util.Imageprocessing.getscale(
                 anzeigenzielbreite, anzeigenmaxhöhe, vorschaubildpattern
             )
@@ -112,7 +103,7 @@ def bildauswahl(dummy):
             patternvorschauUser.configure(image=vorschaubildpattern)
             patternvorschauUser.image = vorschaubildpattern
         except Exception as e:
-            print(patternName + " wurde nicht gefunden, bitte überprüfen " + e)
+            print(patternName + " wurde nicht gefunden, bitte überprüfen ")
             return
 
 
@@ -213,13 +204,18 @@ def textHandlingGUI(currentOrder):
 
 # war super dumm eine riesen update methode zu machen ............
 def select(currentOrder):
+    if profiling == True:
+        prof = profile.Profile()
+        prof.enable()
     global patternliste
     try:
         _, farbe = Util.Config.getXMLConfig(template.get().split(".")[0])
         colorscheme.set(farbe["farbart"])
     except:
         print("fehler beim lesen des Templates")
-
+    asin = Util.Jsonprocessing.getAsin(currentOrder)
+    colordict = Util.Config.getColorCodes()
+    patternvorschauUser.configure(bg=colordict[asin])
     # wenn wir kein bild haben:
     if Util.Jsonprocessing.getIfOnlyText(currentOrder):
         # vorschau
@@ -251,10 +247,18 @@ def select(currentOrder):
             mehrereAusgewaehlteBilder.configure(text="", fg="#9f1d35")
         textHandlingGUI(currentOrder)
     ordernumber.set(currentOrder)
+    if colordict[asin] == "#000000":
+        invertVar.set(1)
+    else:
+        invertVar.set(0)
     try:
         comment.configure(text=Util.Jsonprocessing.getComments(ordernumber.get()))
     except:
         print("Kommentar kann nicht angezeigt werden")
+    if profiling == True:
+        # prof.disable()
+        stats = pstats.Stats(prof).strip_dirs().sort_stats("cumtime")
+        stats.print_stats(10)  # top 10 rows
 
 
 def update_dropdown():
@@ -272,6 +276,11 @@ def process():
     if Util.Jsonprocessing.getIfOnlyText(ordernumber.get()) or bildistda == False:
         currentPatternImage = None
     else:
+        # workaround fuer bilder auf schwarzem hintergrund
+        asin = Util.Jsonprocessing.getAsin(ordernumber.get())
+        colordict = Util.Config.getColorCodes()
+        if colordict[asin] == "#000000":
+            currentPatternImage = Util.Imageprocessing.invertAlt(currentPatternImage)
         currentPatternImage.save("Util/pattern.png")
 
     Orders.processxml(
@@ -297,9 +306,7 @@ def process():
 
 
 if __name__ == "__main__":
-    if profiling == True:
-        prof = profile.Profile()
-        prof.enable()
+    print("Version: 0.1")
     # initiale Belegung der Variablen
     order = None
     ListOfOrdersStillToDo = []
@@ -359,14 +366,21 @@ if __name__ == "__main__":
         comment.pack()
         thresh = tk.StringVar()
         thresh.set("Otsu's thresholding after Gaussian filtering")
+        invertVar = tk.IntVar()
+        # invertVar.set(0)
 
         # Vorschaubild für den User
         vorschaubildUser = tk.Label(window)
         vorschaubildUser.pack(side="right", fill="both", expand="yes")
         bildbezeichnungVorschau = tk.Label(window, text="Vorschaubild")
         bildbezeichnungVorschau.pack()
-        patternvorschauUser = tk.Label(window)
-        patternvorschauUser.pack(side="right", fill="both", expand="yes")
+        patternvorschauUser = tk.Label(
+            window,
+            bg="#40E0D0",
+            width=anzeigenzielbreite,
+            height=anzeigenmaxhöhe,  # wprk to be done
+        )
+        patternvorschauUser.pack(side="right", fill="x", expand="no")
         textunterbild = tk.Label(window)
         textunterbild.pack()
         textueberbild = tk.Label(window)
@@ -412,10 +426,10 @@ if __name__ == "__main__":
             command=process,
         )
         startButton.pack()
-
+        invertbutton = tk.Checkbutton(
+            window, text="Inverted", variable=invertVar, command=invert
+        )
+        invertbutton.pack()
         select(ListOfOrdersStillToDo[0])
-        if profiling == True:
-            prof.disable()
-            stats = pstats.Stats(prof).strip_dirs().sort_stats("cumtime")
-            stats.print_stats(10)  # top 10 rows
+
         window.mainloop()
