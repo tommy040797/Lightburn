@@ -47,10 +47,11 @@ def invert():
         asin = Util.Jsonprocessing.getAsin(ordernumber.get())
         colordict = Util.Config.getColorCodes()
 
-        if colordict[asin] == "#000000":
-            currentPatternImage = Util.Imageprocessing.invertAlt(currentPatternImage)
-        else:
-            currentPatternImage = Util.Imageprocessing.invert(currentPatternImage)
+        # if colordict[asin] == "#000000":
+        # currentPatternImage = Util.Imageprocessing.invertAlt(currentPatternImage)
+
+        # else:
+        currentPatternImage = Util.Imageprocessing.invert(currentPatternImage)
 
         weitergebimage = currentPatternImage
         size = Util.Imageprocessing.getscale(
@@ -250,10 +251,6 @@ def select(currentOrder):
             mehrereAusgewaehlteBilder.configure(text="", fg="#9f1d35")
         textHandlingGUI(currentOrder)
     ordernumber.set(currentOrder)
-    if colordict[asin] == "#000000":
-        invertVar.set(1)
-    else:
-        invertVar.set(0)
     try:
         comment.configure(text=Util.Jsonprocessing.getComments(ordernumber.get()))
     except:
@@ -283,8 +280,8 @@ def process():
         asin = Util.Jsonprocessing.getAsin(ordernumber.get())
         colordict = Util.Config.getColorCodes()
         if colordict[asin] == "#000000":
-            currentPatternImage = Util.Imageprocessing.invertAlt(currentPatternImage)
-        currentPatternImage.save("Util/pattern.png")
+            dummy = Util.Imageprocessing.invertAlt(currentPatternImage)
+        dummy.save("Util/pattern.png")
 
     Orders.processxml(
         template.get(),
