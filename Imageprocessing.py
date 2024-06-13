@@ -141,16 +141,22 @@ def invertStep(image):
 
 
 def invert(img):
-    r, g, b, a = img.split()
+    try:
+        r, g, b, a = img.split()
 
-    r, g, b, a = map(invertStep, (r, g, b, a))
-    img2 = Image.merge(img.mode, (r, g, b, a))
-    return img2
+        r, g, b, a = map(invertStep, (r, g, b, a))
+        img2 = Image.merge(img.mode, (r, g, b, a))
+        return img2
+    except:
+        print("problem beim invertieren")
 
 
 def invertAlt(img):
-    r, g, b, a = img.split()
+    try:
+        r, g, b, a = img.split()
 
-    r, g, b = map(invertStep, (r, g, b))
-    img2 = Image.merge(img.mode, (r, g, b, a))
-    return img2
+        r, g, b = map(invertStep, (r, g, b))
+        img2 = Image.merge(img.mode, (r, g, b, a))
+        return img2
+    except:
+        print("problem beim invertieren")
