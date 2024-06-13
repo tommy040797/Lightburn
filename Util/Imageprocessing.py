@@ -30,28 +30,12 @@ def durchsichtigWeis(img):
     return img
 
 
-def weisDurchsichtig2(img):
-    datas = img.getdata()
-    newData = []
-    for item in datas:
-        if item[0] == 255 and item[1] == 255 and item[2] == 255:
-            newData.append((255, 255, 255, 0))
-        else:
-            newData.append(item)
-
-    img.putdata(newData)
-    return img
-
-
 def weisDurchsichtig(img):
-    width, height = img.size
-    pixdata = img.load()
+    x = np.asarray(img.convert("RGBA")).copy()
 
-    for y in range(height):
-        for x in range(width):
-            if pixdata[x, y] == (255, 255, 255, 255):
-                pixdata[x, y] = (255, 255, 255, 0)
-    return img
+    x[:, :, 3] = (255 * (x[:, :, :3] != 255).any(axis=2)).astype(np.uint8)
+
+    return Image.fromarray(x)
 
 
 def schwarzweis(cholorscheme, vorschaubildpattern, thresh):
@@ -117,50 +101,6 @@ def schwarzweis(cholorscheme, vorschaubildpattern, thresh):
     return vorschaubildpattern
 
 
-def cropImageDeprecated(img):
-    array = np.array(img)
-    try:
-        blacky, blackx, dummy = np.where(array != 255)
-    except:
-        blacky, blackx = np.where(array != 255)
-    top, bottom = blacky[0], blacky[-1]
-
-    left, right = min(blackx), max(blackx)
-
-    img = array[top:bottom, left:right]
-    im_pil = Image.fromarray(img)
-    return im_pil
-
-
-def cropImageAlt(img):
-    array = np.array(img)
-    try:
-        blacky, blackx, dummy = np.where(array != True)
-    except:
-        blacky, blackx = np.where(array != True)
-    top, bottom = blacky[0], blacky[-1]
-
-    left, right = min(blackx), max(blackx)
-
-    img = array[top:bottom, left:right]
-    im_pil = Image.fromarray(img)
-    return im_pil
-
-
-def cropImageAltAlt(img):
-    array = img
-    try:
-        blacky, blackx, dummy = np.where(array != 255)
-    except:
-        blacky, blackx = np.where(array != 255)
-    top, bottom = blacky[0], blacky[-1]
-
-    left, right = min(blackx), max(blackx)
-
-    img = array[top:bottom, left:right]
-    return img
-
-
 def cropImage(img):
     invert_im = img.convert("RGB")
     invert_im = ImageOps.invert(invert_im)
@@ -168,3 +108,29 @@ def cropImage(img):
     cropped = img.crop(imageBox)
     cropped = cropped.convert("RGBA")
     return cropped
+
+
+def invertStep(image):
+    return image.point(lambda p: 255 - p)
+
+
+def invert(img):
+    try:
+        r, g, b, a = img.split()
+
+        r, g, b, a = map(invertStep, (r, g, b, a))
+        img2 = Image.merge(img.mode, (r, g, b, a))
+        return img2
+    except:
+        print("problem beim invertieren")
+
+
+def invertAlt(img):
+    try:
+        r, g, b, a = img.split()
+
+        r, g, b = map(invertStep, (r, g, b))
+        img2 = Image.merge(img.mode, (r, g, b, a))
+        return img2
+    except:
+        print("problem beim invertieren")

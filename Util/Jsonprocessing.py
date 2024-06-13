@@ -232,3 +232,16 @@ def getThirdLine(orderid):
         except:
             return ""
     return childerin1
+
+
+def getAsin(orderid):
+    gui = Util.Config.getGuiConfig()
+
+    file = glob.glob("Zips/" + orderid + "/*.json")
+    with open(file[0], "r", encoding="UTF-8") as f:
+        data = json.load(f)
+        try:
+            childerin1 = eval(gui["Asin"])
+        except:
+            return ""
+    return childerin1

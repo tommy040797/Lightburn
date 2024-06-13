@@ -34,3 +34,10 @@ def getGuiConfig():
     config.read("gui.ini")
     # config.read("gui.ini")
     return config._sections["Default"]
+
+
+def getColorCodes():
+    config = configparser.ConfigParser()
+    config.optionxform = str
+    config.read("colorCodes.ini")
+    return config._sections["Default"]

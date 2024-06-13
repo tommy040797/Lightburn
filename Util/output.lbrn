@@ -27,9 +27,9 @@
     <CutSetting type="Scan">
         <index Value="0" />
         <name Value="Text unten" />
-        <minPower Value="20" />
-        <maxPower Value="80" />
-        <maxPower2 Value="30" />
+        <minPower Value="0" />
+        <maxPower Value="60" />
+        <maxPower2 Value="10" />
         <speed Value="28.3333" />
         <overscanPercent Value="1.5" />
         <forceConstantPower Value="1" />
@@ -40,9 +40,9 @@
     <CutSetting type="Scan">
         <index Value="11" />
         <name Value="Text oben" />
-        <minPower Value="20" />
-        <maxPower Value="80" />
-        <maxPower2 Value="30" />
+        <minPower Value="0" />
+        <maxPower Value="60" />
+        <maxPower2 Value="10" />
         <speed Value="28.3333" />
         <overscanPercent Value="1.5" />
         <priority Value="1" />
@@ -52,9 +52,9 @@
     <CutSetting_Img type="Image">
         <index Value="0" />
         <name Value="Bild" />
-        <minPower Value="20" />
-        <maxPower Value="80" />
-        <maxPower2 Value="30" />
+        <minPower Value="0" />
+        <maxPower Value="60" />
+        <maxPower2 Value="10" />
         <speed Value="28.3333" />
         <overscanPercent Value="1.5" />
         <interval Value="0.0901" />
@@ -65,13 +65,13 @@
         <ditherMode Value="threshold" />
         <dpi Value="282" />
     </CutSetting_Img>
-    <Shape Type="Text" CutIndex="11" Font="Roboto Slab" Str="" H="7.83008" LS="0" LnS="0" Ah="1" Av="2" OldWidth="1" Weld="1" ForceCase="1" VariableOffset="1" HasBackupPath="0">
+    <Shape Type="Text" CutIndex="11" Font="Lato" Str="&#9734;Benjamin&#9734;" H="7.83008" LS="0" LnS="0" Ah="1" Av="2" OldWidth="1" Weld="1" ForceCase="1" VariableOffset="1" HasBackupPath="0">
         <XForm>-1.6292068e-07 -1.0 1.0 -1.6292068e-07 133.19571 122.0</XForm>
     </Shape>
-    <Shape Type="Text" CutIndex="0" Font="Roboto Slab" Str="Josie" H="7.8298159" LS="0" LnS="0" Ah="1" Av="0" OldWidth="1" Weld="1" ForceCase="1" VariableOffset="1" HasBackupPath="0">
+    <Shape Type="Text" CutIndex="0" Font="Lato" Str="New Life 2024" H="7.8298159" LS="0" LnS="0" Ah="1" Av="0" OldWidth="1" Weld="1" ForceCase="1" VariableOffset="1" HasBackupPath="0">
         <XForm>-1.6292068e-07 -1.0 1.0 -1.6292068e-07 58.199532 122.0</XForm>
     </Shape>
-    <Shape Type="Bitmap" CutIndex="0" W="71" H="100" Gamma="1" Contrast="0" Brightness="0" EnhanceAmount="0" EnhanceRadius="0" EnhanceDenoise="0" File="C:\Code\lightburn\Util\pattern.png" Data="">
+    <Shape Type="Bitmap" CutIndex="0" W="66" H="100" Gamma="1" Contrast="0" Brightness="0" EnhanceAmount="0" EnhanceRadius="0" EnhanceDenoise="0" File="C:\Code\lightburn\Util\pattern.png" Data="">
         <XForm>0.0 -0.74999982 0.74999982 0.0 93.0 122.0</XForm>
     </Shape>
     <Notes ShowOnLoad="0" Notes="" />
