@@ -36,8 +36,15 @@ def getGuiConfig():
     return config._sections["Default"]
 
 
-def getColorCodes():
+def getColorCodesBlack():
     config = configparser.ConfigParser()
     config.optionxform = str
     config.read("colorCodes.ini")
-    return config._sections["Default"]
+    return config._sections["Schwarz"]
+
+
+def getColorCodesSilver():
+    config = configparser.ConfigParser()
+    config.optionxform = str
+    config.read("colorCodes.ini")
+    return config._sections["Silber"]

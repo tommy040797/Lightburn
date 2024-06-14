@@ -241,7 +241,7 @@ def getAsin(orderid):
     with open(file[0], "r", encoding="UTF-8") as f:
         data = json.load(f)
         try:
-            childerin1 = eval(gui["Asin"])
+            childerin1 = eval(gui["Identifier"])
         except:
             return ""
     return childerin1
