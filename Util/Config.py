@@ -48,3 +48,10 @@ def getColorCodesSilver():
     config.optionxform = str
     config.read("colorCodes.ini")
     return config._sections["Silber"]
+
+
+def getUIColor():
+    config = configparser.ConfigParser()
+    config.optionxform = str
+    config.read("Gui.ini")
+    return config._sections["UI"]

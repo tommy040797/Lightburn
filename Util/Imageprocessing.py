@@ -3,6 +3,8 @@ from PIL import Image
 import cv2 as cv
 import numpy as np
 from PIL import ImageOps
+import Util
+import Util.Config
 
 
 def getscale(targetwidth, maxhoehe, img):
@@ -71,8 +73,10 @@ def schwarzweis(cholorscheme, vorschaubildpattern, thresh):
         # array = cropImageAltAlt(array)
         match thresh:
             case "Global Thresholding":
-                # vorschaubildpattern = cv.threshold(array, 127, 255, cv.THRESH_BINARY)
-                pass
+                test, vorschaubildpattern = cv.threshold(
+                    array, 127, 255, cv.THRESH_BINARY
+                )
+
             case "Adaptive Mean Threshholding":
                 vorschaubildpattern = cv.adaptiveThreshold(
                     array, 255, cv.ADAPTIVE_THRESH_MEAN_C, cv.THRESH_BINARY, 11, 2
@@ -127,10 +131,27 @@ def invert(img):
 
 def invertAlt(img):
     try:
+        img = img.convert("RGBA")
         r, g, b, a = img.split()
 
         r, g, b = map(invertStep, (r, g, b))
         img2 = Image.merge(img.mode, (r, g, b, a))
         return img2
-    except:
-        print("problem beim invertieren")
+    except Exception as e:
+        print("problem beim invertieren" + str(e))
+
+
+def weisZuSilber(img):
+    color = Util.Config.getUIColor()
+    color = color["SilberColor"]
+    h = color.lstrip("#")
+    farbe = tuple(int(h[i : i + 2], 16) for i in (0, 2, 4))
+    data = np.array(img)  # "data" is a height x width x 4 numpy array
+    red, green, blue, alpha = data.T  # Temporarily unpack the bands for readability
+
+    # Replace white with red... (leaves alpha values alone...)
+    white_areas = (red == 255) & (blue == 255) & (green == 255)
+    data[..., :-1][white_areas.T] = farbe  # Transpose back needed
+
+    img = Image.fromarray(data)
+    return img

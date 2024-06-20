@@ -65,13 +65,13 @@
         <ditherMode Value="threshold" />
         <dpi Value="282" />
     </CutSetting_Img>
-    <Shape Type="Text" CutIndex="11" Font="Lato" Str="" H="7.83008" LS="0" LnS="0" Ah="1" Av="2" OldWidth="1" Weld="1" ForceCase="1" VariableOffset="1" HasBackupPath="0">
+    <Shape Type="Text" CutIndex="11" Font="Alegreya" Str="" H="7.83008" LS="0" LnS="0" Ah="1" Av="2" OldWidth="1" Weld="1" ForceCase="1" VariableOffset="1" HasBackupPath="0">
         <XForm>-1.6292068e-07 -1.0 1.0 -1.6292068e-07 133.19571 122.0</XForm>
     </Shape>
-    <Shape Type="Text" CutIndex="0" Font="Lato" Str="Hannah" H="7.8298159" LS="0" LnS="0" Ah="1" Av="0" OldWidth="1" Weld="1" ForceCase="1" VariableOffset="1" HasBackupPath="0">
+    <Shape Type="Text" CutIndex="0" Font="Alegreya" Str="Moni 2.29" H="7.8298159" LS="0" LnS="0" Ah="1" Av="0" OldWidth="1" Weld="1" ForceCase="1" VariableOffset="1" HasBackupPath="0">
         <XForm>-1.6292068e-07 -1.0 1.0 -1.6292068e-07 58.199532 122.0</XForm>
     </Shape>
-    <Shape Type="Bitmap" CutIndex="0" W="67" H="100" Gamma="1" Contrast="0" Brightness="0" EnhanceAmount="0" EnhanceRadius="0" EnhanceDenoise="0" File="C:\Code\lightburn\Util\pattern.png" Data="">
+    <Shape Type="Bitmap" CutIndex="0" W="67" H="100" Gamma="1" Contrast="0" Brightness="0" EnhanceAmount="0" EnhanceRadius="0" EnhanceDenoise="0" File="C:\Code\lightburn\Alle Motive\Tennis Damen.png" Data="">
         <XForm>0.0 -0.74999982 0.74999982 0.0 93.0 122.0</XForm>
     </Shape>
     <Notes ShowOnLoad="0" Notes="" />
