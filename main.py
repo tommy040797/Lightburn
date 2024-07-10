@@ -3,6 +3,8 @@ import Util.Config
 import Util.Gather
 import Util.Imageprocessing
 import Util.Order as Orders
+
+# import Util.UIEnhance
 import tkinter as tk
 from tkinter import font as f
 from PIL import ImageTk, Image
@@ -11,8 +13,13 @@ import Util.Jsonprocessing
 import os
 import cProfile as profile
 import pstats
+import traceback
+import logging
+import shutil
 
-# TODO: UI Ordnen, regex für filter, invertieren, schieberegler helligkeit kontrast gamma, template name egal machen, template nicht da fehlermeldung, grau statt weis, translation größe etc.
+# TODO: logs beim gui lesen, layoutmanager, schieberegler für global thresh
+
+logger = logging.getLogger(__name__)
 
 # Config lesen
 try:
@@ -29,7 +36,9 @@ try:
     standardTemplate = configdict["Standardtemplate"]
     delimiter = configdict["delimiterFuerConfig"]
     pfadzulightburn = configdict["PfadZuLightburn"]
+    pfadzuirfan = configdict["PfadZuIrfanview"]
     orderIdSpaltenName = configdict["ID-Spaltenname"]
+    pfadzuallenmotiven = configdict["PfadZuAllenMotiven"]
 except:
     print(
         "Standardconfig wurde nicht gefunden, oder ein Fehler liegt vor, Programm wird beendet"
@@ -38,6 +47,56 @@ except:
 
 bildistda = True
 profiling = False
+
+
+def IrfanUI(parent, gridx, gridy, rowspan, columnspan):
+
+    def openIrfan():
+        patternpfad = pattern.get()
+        if pfadzuallenmotiven not in patternpfad:
+            allemotive = False
+        else:
+            allemotive = True
+        if not Util.Jsonprocessing.getIfOnlyText(ordernumber.get()) and not allemotive:
+            try:
+
+                shutil.copyfile(patternpfad, patternpfad + "original.png")
+                subprocess.call(
+                    [
+                        pfadzuirfan,
+                        patternpfad,
+                    ]
+                )
+                logger.info("IrfanView gestartet")
+                select(ordernumber.get())
+            except Exception as e:
+                logger.exception(e)
+                logger.info("IrfanView kann nicht gestartet werden")
+        else:
+            return
+
+    def reset():
+        if not Util.Jsonprocessing.getIfOnlyText(ordernumber.get()):
+            try:
+                patternpfad = pattern.get()
+                try:
+                    shutil.copyfile(patternpfad + "original.png", patternpfad)
+                except:
+                    logger.warning("Bild konnte nicht zurückgesetzt werden")
+                logger.info("Bild Resettet")
+                select(ordernumber.get())
+            except Exception as e:
+                logger.exception(e)
+                logger.info("Bild konnte nicht zurückgesetzt werden")
+        else:
+            return
+
+    IrfanFrame = tk.Frame(parent)
+    IrfanFrame.grid(row=gridy, column=gridx, columnspan=columnspan, rowspan=rowspan)
+    buttonIrfan = tk.Button(IrfanFrame, text="IrfanView", command=openIrfan)
+    buttonIrfan.pack(pady=5)
+    buttonReload = tk.Button(IrfanFrame, text="Reset zu Originalbild", command=reset)
+    buttonReload.pack(pady=5)
 
 
 def setBackground(asin, colordictB, colordictS):
@@ -89,7 +148,7 @@ def invert():
             vorschaubildpattern = Image.open(patternName)
             vorschaubildpattern = Util.Imageprocessing.invertAlt(vorschaubildpattern)
             vorschaubildpattern = Util.Imageprocessing.schwarzweis(
-                colorscheme.get(), vorschaubildpattern, thresh.get()
+                colorscheme.get(), vorschaubildpattern, thresh.get(), threshhold.get()
             )
             vorschaubildpattern = Util.Imageprocessing.invertAlt(vorschaubildpattern)
 
@@ -140,7 +199,7 @@ def bildauswahl(dummy):
             colordictS = Util.Config.getColorCodesSilver()
 
             vorschaubildpattern = Util.Imageprocessing.schwarzweis(
-                colorscheme.get(), vorschaubildpattern, thresh.get()
+                colorscheme.get(), vorschaubildpattern, thresh.get(), threshhold.get()
             )
             # zwischenablage des bilds zum geben an process
             currentPatternImage = vorschaubildpattern
@@ -192,7 +251,8 @@ def textHandlingGUI(currentOrder):
         textBelow = Util.Jsonprocessing.getTextBelow(currentOrder)
         fonts = Util.Jsonprocessing.getFont(currentOrder)
         color = Util.Jsonprocessing.getEngravingColor(currentOrder)
-    except:
+    except Exception as e:
+        traceback.print_exception(e)
         print(
             "Bei einer Bestellung mit nur Text konnte mindestens ein Text nicht geladen werden, oder die Font oder color konnte nicht geladen werden"
         )
@@ -279,7 +339,7 @@ def select(currentOrder):
 
     # wenn wir kein bild haben:
     if Util.Jsonprocessing.getIfOnlyText(currentOrder):
-        # vorschau
+        #
         patternliste = ["Es gibt kein Bild"]
         update_dropdown()
         pattern.set("Es gibt kein Bild")
@@ -290,7 +350,6 @@ def select(currentOrder):
         textHandlingGUI(currentOrder)
     else:
         # bildhandling wenn bilder vorhanden sind
-
         previewName = Util.Jsonprocessing.getPreviewImage(currentOrder)
         patternliste, hits = Util.Jsonprocessing.getOnlyPattern(currentOrder, delimiter)
         if not hits == 0:
@@ -368,6 +427,7 @@ def process():
 
 
 if __name__ == "__main__":
+    # logging.basicConfig(filename="logs.log", level=logging.INFO)
     print("Version: 0.2")
     # initiale Belegung der Variablen
     order = None
@@ -405,11 +465,11 @@ if __name__ == "__main__":
                 i += 1
             ListOfOrdersStillToDo.append(item[orderIdSpaltenName])
         except Exception as e:
+
             print(
                 "Der Download mit der nummer {nummer} hat nicht funktioniert".format(
                     nummer=i
                 )
-                + str(e)
             )
             i += 1
 
@@ -428,21 +488,24 @@ if __name__ == "__main__":
         pattern = tk.StringVar()
         pattern.set("")
         comment = tk.Label(window, text="")
-        comment.pack()
+        comment.grid(row=4, column=2, columnspan=2)
         thresh = tk.StringVar()
         thresh.set("Otsu's thresholding after Gaussian filtering")
         invertVar = tk.IntVar()
         invertVar.set(0)
 
+        overallFrame = tk.Frame(window)
+        overallFrame.grid(row=1, column=1)
+
         # Vorschaubild für den User
-        vorschaubildUser = tk.Label(window)
-        vorschaubildUser.pack(side="right", fill="both", expand="yes")
-        bildbezeichnungVorschau = tk.Label(window, text="Vorschaubild")
-        bildbezeichnungVorschau.pack()
+        vorschaubildUser = tk.Label(overallFrame)
+        vorschaubildUser.grid(row=2, column=3)
+        bildbezeichnungVorschau = tk.Label(overallFrame, text="Vorschaubild")
+        bildbezeichnungVorschau.grid(row=1, column=3)
 
         # Patternvorschau
-        patternvorschauFrame = tk.Frame(window)
-        patternvorschauFrame.pack(side="right")
+        patternvorschauFrame = tk.Frame(overallFrame, width=anzeigenzielbreite)
+        patternvorschauFrame.grid(row=2, column=2, sticky="E")
         textueberbild = tk.Label(patternvorschauFrame)
         textueberbild.pack()
         patternvorschauUser = tk.Label(
@@ -454,21 +517,17 @@ if __name__ == "__main__":
         textunterbild = tk.Label(patternvorschauFrame)
         textunterbild.pack()
 
-        fontnotfound = tk.Label(window)
+        # ErrorFrame
+        frameError = tk.Frame(overallFrame, width=200)
+        frameError.grid(row=1, column=1)
+        fontnotfound = tk.Label(frameError, wraplength=200)
         fontnotfound.pack()
-        mehrereAusgewaehlteBilder = tk.Label(window)
+        mehrereAusgewaehlteBilder = tk.Label(frameError, wraplength=400)
         mehrereAusgewaehlteBilder.pack()
-        bildbezeichnungPattern = tk.Label(window, text="Pattern")
-        bildbezeichnungPattern.pack()
 
-        # dropdownmenü um auftrag auszuwaehlen
-        # drop = tk.OptionMenu(
-        # window, ordernumber, *ListOfOrdersStillToDo, command=select
-        # )
-        # drop.pack()
-
-        frame = tk.Frame(window)
-        frame.pack()
+        # Selectframe
+        frame = tk.Frame(overallFrame, padx=10)
+        frame.grid(row=2, column=1)
         list = tk.Listbox(
             frame,
             width=30,
@@ -482,38 +541,50 @@ if __name__ == "__main__":
         for item in ListOfOrdersStillToDo:
             list.insert("end", item)
         list.bind("<<ListboxSelect>>", intermediate)
+
         # dropdownmenue fuer template
+        configFrame = tk.Frame(overallFrame)
+        configFrame.grid(row=3, column=1, columnspan=2)
         dropTemplate = tk.OptionMenu(
-            window, template, *ListOfAvailableTemplates, command=bildauswahl
+            configFrame, template, *ListOfAvailableTemplates, command=bildauswahl
         )
         dropTemplate.pack()
 
         # dropdown zur bildauswahl
-        dropPattern = tk.OptionMenu(window, pattern, *patternliste, command=bildauswahl)
+        dropPattern = tk.OptionMenu(
+            configFrame, pattern, *patternliste, command=bildauswahl
+        )
         dropPattern.pack()
 
         dropThresh = tk.OptionMenu(
-            window, thresh, *ListOfThreshholding, command=bildauswahl
+            configFrame, thresh, *ListOfThreshholding, command=bildauswahl
         )
         dropThresh.pack()
 
         select(ListOfOrdersStillToDo[0])
         # dropdownmenu fuer Vorschaubild schwarzweis
         dropColor = tk.OptionMenu(
-            window, colorscheme, *ListOfColors, command=bildauswahl
+            configFrame, colorscheme, *ListOfColors, command=bildauswahl
         )
         dropColor.pack()
+        threshhold = tk.Scale(configFrame, from_=0, to=255, orient=tk.HORIZONTAL)
+        threshhold.set(127)
+        threshhold.bind("<ButtonRelease-1>", bildauswahl)
+        threshhold.pack()
+        invertbutton = tk.Checkbutton(
+            configFrame, text="Inverted", variable=invertVar, command=invert
+        )
+        invertbutton.pack()
 
         startButton = tk.Button(
-            window,
+            overallFrame,
             text="Ausgewählte Bestellung Starten",
             command=process,
         )
-        startButton.pack()
-        invertbutton = tk.Checkbutton(
-            window, text="Inverted", variable=invertVar, command=invert
-        )
-        invertbutton.pack()
+        startButton.grid(row=5, column=1)
+
         select(ListOfOrdersStillToDo[0])
 
+        IrfanUI(overallFrame, 1, 4, 1, 1)
+        # Util.UIEnhance.putStuff(window, None)
         window.mainloop()
