@@ -40,7 +40,7 @@ def weisDurchsichtig(img):
     return Image.fromarray(x)
 
 
-def schwarzweis(cholorscheme, vorschaubildpattern, thresh):
+def schwarzweis(cholorscheme, vorschaubildpattern, thresh, threshvalue):
     if cholorscheme == "Graustufen":
         try:
             vorschaubildpattern = durchsichtigWeis(vorschaubildpattern)
@@ -74,7 +74,7 @@ def schwarzweis(cholorscheme, vorschaubildpattern, thresh):
         match thresh:
             case "Global Thresholding":
                 test, vorschaubildpattern = cv.threshold(
-                    array, 127, 255, cv.THRESH_BINARY
+                    array, threshvalue, 255, cv.THRESH_BINARY
                 )
 
             case "Adaptive Mean Threshholding":
