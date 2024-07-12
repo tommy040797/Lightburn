@@ -567,7 +567,7 @@ def process():
 
 if __name__ == "__main__":
     logging.basicConfig(filename="logs.log", level=logging.INFO)
-    print("Version: 0.2")
+    print("Version: 0.3")
     # initiale Belegung der Variablen
     order = None
     ListOfOrdersStillToDo = []
