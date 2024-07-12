@@ -55,3 +55,10 @@ def getUIColor():
     config.optionxform = str
     config.read("Gui.ini")
     return config._sections["UI"]
+
+
+def getAugmentedUI():
+    config = configparser.ConfigParser()
+    config.optionxform = str
+    config.read("Gui.ini")
+    return config._sections["CustomElements"]
