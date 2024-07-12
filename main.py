@@ -17,8 +17,12 @@ import traceback
 import logging
 import shutil
 
-# TODO: logs beim gui lesen, layoutmanager, schieberegler für global thresh
 
+# TODO: logs beim gui lesen, layoutmanager
+try:
+    os.remove("logs.log")
+except:
+    pass
 logger = logging.getLogger(__name__)
 
 # Config lesen
@@ -49,7 +53,123 @@ bildistda = True
 profiling = False
 
 
-def IrfanUI(parent, gridx, gridy, rowspan, columnspan):
+def augmentUI(parent):
+    def preview(evt):
+        try:  # try catch um deselection von anderer liste zu ignorieren
+            w = evt.widget
+            ziel = 0
+            for i in range(breitegrid * hoehegrid):
+                if w in objekte[i]:
+                    ziel = i
+            nummer = int(w.curselection()[0])
+            value = w.get(nummer)
+            bild = ImageTk.PhotoImage(
+                Image.open(pfadzuallenmotiven + value).resize(
+                    (64, 64), Image.Resampling.NEAREST
+                )
+            )
+            objekte[ziel][3].configure(image=bild)
+            objekte[ziel][3].image = bild
+        except:
+            pass
+
+    def putasactive(evt):
+        try:
+            nummer = int(objekte[evt][1].curselection()[0])
+            value = objekte[evt][1].get(nummer)
+            pattern.set(pfadzuallenmotiven + value)
+            bildauswahl(None)
+        except:
+            pass
+
+    try:
+        todo = Util.Config.getAugmentedUI()
+        breitegrid = int(Util.Config.getUIColor()["Gridbreite"])
+        hoehegrid = int(Util.Config.getUIColor()["Gridhoehe"])
+        logger.info("AugmentedUI gelesen")
+    except Exception as e:
+        logger.exception(e)
+        print("Problem beim GUI Custom Config lesen")
+    keys = []
+    keylist = list(todo.keys())
+    valuelist = list(todo.values())
+    try:
+        for key in keylist:
+            keys.append(key.split(delimiter))
+        logger.info("Keys gesplittet")
+    except Exception as e:
+        logger.exception(e)
+
+    # gridsanlegen
+    frames = []
+    objekte = []
+    j = 0
+    for i in range(breitegrid * hoehegrid):
+        objekte.append([])
+        logger.info("frame mit nummer %f wird angelegt", i + 1)
+        frames.append(
+            tk.Frame(
+                parent,
+                highlightbackground="yellow",
+                highlightthickness=2,
+                height=250,
+                width=240,
+            )
+        )
+        frames[i - 1].pack_propagate(0)
+        if i % breitegrid == 0:
+            j += 1
+        frames[i].grid(row=j, column=(i % breitegrid) + 1)
+        # print(j, (i % breitegrid) + 1)
+    print(len(frames))
+    for key in keys:
+        nummer = int(key[2]) + breitegrid * (int(key[1]) - 1) - 1
+        if key[0] == "bilderauswahl":
+
+            files = []
+            for file in os.listdir(valuelist[keys.index(key)]):
+                if file.endswith(".png"):
+                    files.append(file)
+            # frame = 0, listbox = 1, scrollbar = 2, previewbild = 3, button = 4
+            objekte[nummer].append(
+                tk.Frame(
+                    frames[nummer],
+                    padx=10,
+                ),
+            )
+            objekte[nummer][0].pack(side="top", anchor="w")
+            objekte[nummer].append(
+                tk.Listbox(
+                    objekte[nummer][0],
+                    width=30,
+                )
+            )
+            objekte[nummer][1].pack(side="left", fill="y")
+            objekte[nummer].append(
+                tk.Scrollbar(
+                    objekte[nummer][0],
+                    orient="vertical",
+                )
+            )
+            objekte[nummer][2].config(command=objekte[nummer][1].yview)
+            objekte[nummer][2].pack(side="right", fill="y")
+            objekte[nummer][1].config(yscrollcommand=objekte[nummer][2].set)
+            for item in files:
+                objekte[nummer][1].insert("end", item)
+            objekte[nummer][1].bind("<<ListboxSelect>>", preview)
+            objekte[nummer].append(tk.Label(frames[nummer]))
+            objekte[nummer][3].pack(side="left", padx=10)
+            objekte[nummer].append(
+                tk.Button(
+                    frames[nummer],
+                    text="Bild übernehmen",
+                )
+            )
+            objekte[nummer][4].config(command=lambda t=nummer: putasactive(t))
+            objekte[nummer][4].pack(side="right", padx=10)
+
+
+def IrfanUI(parent, gridx, gridy, rowspan, columnspan, pack):
 
     def openIrfan():
         patternpfad = pattern.get()
@@ -91,12 +211,22 @@ def IrfanUI(parent, gridx, gridy, rowspan, columnspan):
         else:
             return
 
-    IrfanFrame = tk.Frame(parent)
-    IrfanFrame.grid(row=gridy, column=gridx, columnspan=columnspan, rowspan=rowspan)
-    buttonIrfan = tk.Button(IrfanFrame, text="IrfanView", command=openIrfan)
-    buttonIrfan.pack(pady=5)
-    buttonReload = tk.Button(IrfanFrame, text="Reset zu Originalbild", command=reset)
-    buttonReload.pack(pady=5)
+    IrfanFrame = tk.Frame(
+        parent,
+        highlightbackground="blue",
+        highlightthickness=2,
+    )
+    # IrfanFrame.pack_propagate(0)
+    if pack:
+        IrfanFrame.pack(anchor="w")
+    else:
+        IrfanFrame.grid(row=gridy, column=gridx, columnspan=columnspan, rowspan=rowspan)
+    buttonIrfan = tk.Button(IrfanFrame, text="IrfanView", command=openIrfan, width=20)
+    buttonIrfan.pack(pady=5, fill="x")
+    buttonReload = tk.Button(
+        IrfanFrame, text="Reset zu Originalbild", command=reset, width=20
+    )
+    buttonReload.pack(pady=5, fill="x")
 
 
 def setBackground(asin, colordictB, colordictS):
@@ -129,12 +259,14 @@ def setBackground(asin, colordictB, colordictS):
 
 
 def intermediate(evt):
-
-    w = evt.widget
-    index = int(w.curselection()[0])
-    value = w.get(index)
-    ordernumber.set(value)
-    select(value)
+    try:  # keine auswahl durch liste wechseln ignorieren
+        w = evt.widget
+        index = int(w.curselection()[0])
+        value = w.get(index)
+        ordernumber.set(value)
+        select(value)
+    except:
+        pass
 
 
 def invert():
@@ -203,7 +335,12 @@ def bildauswahl(dummy):
             )
             # zwischenablage des bilds zum geben an process
             currentPatternImage = vorschaubildpattern
-            if asin in colordictS.keys():
+            patternpfad = pattern.get()
+            if pfadzuallenmotiven not in patternpfad:
+                allemotive = False
+            else:
+                allemotive = True
+            if asin in colordictS.keys() and allemotive == True:
                 vorschaubildpattern = Util.Imageprocessing.invertAlt(
                     vorschaubildpattern
                 )
@@ -233,7 +370,9 @@ def vorschaubild(currentOrder):
         previewName = Util.Jsonprocessing.getPreviewImage(currentOrder)
         vorschaubild = Image.open("Zips/" + currentOrder + "/" + previewName)
         size = Util.Imageprocessing.getscale(
-            anzeigenzielbreite, anzeigenmaxhöhe, vorschaubild
+            anzeigenzielbreite,
+            anzeigenmaxhöhe + 100,  # maxhöhe + 100 um für text in pattern account
+            vorschaubild,
         )
         vorschaubild = vorschaubild.resize(size, Image.Resampling.BILINEAR)
         vorschaubild = ImageTk.PhotoImage(vorschaubild)
@@ -427,7 +566,7 @@ def process():
 
 
 if __name__ == "__main__":
-    # logging.basicConfig(filename="logs.log", level=logging.INFO)
+    logging.basicConfig(filename="logs.log", level=logging.INFO)
     print("Version: 0.2")
     # initiale Belegung der Variablen
     order = None
@@ -478,7 +617,7 @@ if __name__ == "__main__":
         window = tk.Tk()
         window.protocol("WM_DELETE_WINDOW", quit)
         window.title("Lightburn Preperation")
-        window.geometry("1000x700")
+        # window.geometry("1000x1000")
         ordernumber = tk.StringVar()
         ordernumber.set(ListOfOrdersStillToDo[0])
         colorscheme = tk.StringVar()
@@ -487,94 +626,151 @@ if __name__ == "__main__":
         template.set(standardTemplate)
         pattern = tk.StringVar()
         pattern.set("")
-        comment = tk.Label(window, text="")
-        comment.grid(row=4, column=2, columnspan=2)
+
         thresh = tk.StringVar()
         thresh.set("Otsu's thresholding after Gaussian filtering")
         invertVar = tk.IntVar()
         invertVar.set(0)
 
-        overallFrame = tk.Frame(window)
+        overallFrame = tk.Frame(
+            window,
+            highlightbackground="red",
+            highlightthickness=2,
+        )
         overallFrame.grid(row=1, column=1)
 
+        overallFrame.grid_rowconfigure(2, minsize=anzeigenmaxhöhe + 170, weight=2)
+        overallFrame.grid_columnconfigure(2, minsize=anzeigenzielbreite + 50, weight=1)
+
+        extendoFrame = tk.Frame(
+            window,
+            highlightbackground="green",
+            highlightthickness=2,
+        )
+        extendoFrame.grid(row=1, column=2)
+
+        comment = tk.Label(overallFrame, text="")
+        comment.grid(row=3, column=3, columnspan=1)
+
         # Vorschaubild für den User
-        vorschaubildUser = tk.Label(overallFrame)
-        vorschaubildUser.grid(row=2, column=3)
-        bildbezeichnungVorschau = tk.Label(overallFrame, text="Vorschaubild")
-        bildbezeichnungVorschau.grid(row=1, column=3)
+        vorschaubildFrame = tk.Frame(
+            overallFrame,
+            width=anzeigenzielbreite + 50,
+            height=anzeigenmaxhöhe + 100,
+            highlightbackground="blue",
+            highlightthickness=2,
+        )
+        vorschaubildFrame.grid(row=2, column=3, sticky="nsw")
+        vorschaubildUser = tk.Label(
+            vorschaubildFrame,
+        )
+        vorschaubildUser.pack()
+        bildbezeichnungVorschau = tk.Label(vorschaubildFrame, text="Vorschaubild")
+        bildbezeichnungVorschau.pack()
 
         # Patternvorschau
-        patternvorschauFrame = tk.Frame(overallFrame, width=anzeigenzielbreite)
-        patternvorschauFrame.grid(row=2, column=2, sticky="E")
-        textueberbild = tk.Label(patternvorschauFrame)
-        textueberbild.pack()
+        patternvorschauFrame = tk.Frame(
+            overallFrame,
+            width=anzeigenzielbreite,
+            height=anzeigenmaxhöhe,
+            highlightbackground="blue",
+            highlightthickness=2,
+        )
+        patternvorschauFrame.grid(row=2, column=2, sticky="nsew", padx=10)
+        textueberbild = tk.Label(
+            patternvorschauFrame,
+            highlightbackground="blue",
+            highlightthickness=2,
+        )
+        textueberbild.pack(fill="both", expand="yes")
         patternvorschauUser = tk.Label(
             patternvorschauFrame,
-            # width=anzeigenzielbreite,
-            # height=anzeigenmaxhöhe,
+            highlightbackground="blue",
+            highlightthickness=2,
         )
-        patternvorschauUser.pack(fill="x", expand="no")
-        textunterbild = tk.Label(patternvorschauFrame)
-        textunterbild.pack()
+        patternvorschauUser.pack(fill="both", expand="yes")
+        textunterbild = tk.Label(
+            patternvorschauFrame,
+            highlightbackground="blue",
+            highlightthickness=2,
+        )
+        textunterbild.pack(fill="both", expand="yes")
 
         # ErrorFrame
-        frameError = tk.Frame(overallFrame, width=200)
-        frameError.grid(row=1, column=1)
-        fontnotfound = tk.Label(frameError, wraplength=200)
+        frameError = tk.Frame(
+            overallFrame,
+            width=200,
+            height=200,
+            highlightbackground="blue",
+            highlightthickness=2,
+        )
+        frameError.grid(row=1, column=1, columnspan=3, sticky="new")
+        fontnotfound = tk.Label(frameError, font=("Arial", 20))
         fontnotfound.pack()
-        mehrereAusgewaehlteBilder = tk.Label(frameError, wraplength=400)
+        mehrereAusgewaehlteBilder = tk.Label(frameError, font=("Arial", 20))
         mehrereAusgewaehlteBilder.pack()
 
         # Selectframe
         frame = tk.Frame(overallFrame, padx=10)
-        frame.grid(row=2, column=1)
-        list = tk.Listbox(
+        frame.grid(row=2, column=1, sticky="nsew")
+        selectlist = tk.Listbox(
             frame,
             width=30,
-            height=10,
+            # height=int(anzeigenmaxhöhe / 10) + 3,
         )
-        list.pack(side="left", fill="y")
+        selectlist.pack(side="left", fill="y")
         scrollbar = tk.Scrollbar(frame, orient="vertical")
-        scrollbar.config(command=list.yview)
+        scrollbar.config(command=selectlist.yview)
         scrollbar.pack(side="right", fill="y")
-        list.config(yscrollcommand=scrollbar.set)
+        selectlist.config(yscrollcommand=scrollbar.set)
         for item in ListOfOrdersStillToDo:
-            list.insert("end", item)
-        list.bind("<<ListboxSelect>>", intermediate)
+            selectlist.insert("end", item)
+        selectlist.bind("<<ListboxSelect>>", intermediate)
 
         # dropdownmenue fuer template
-        configFrame = tk.Frame(overallFrame)
-        configFrame.grid(row=3, column=1, columnspan=2)
-        dropTemplate = tk.OptionMenu(
-            configFrame, template, *ListOfAvailableTemplates, command=bildauswahl
+        configFrame = tk.Frame(
+            overallFrame, highlightbackground="blue", highlightthickness=2
         )
-        dropTemplate.pack()
+        configFrame.grid(row=3, column=1, columnspan=2, sticky="new", pady=10)
+        dropTemplate = tk.OptionMenu(
+            configFrame,
+            template,
+            *ListOfAvailableTemplates,
+            command=bildauswahl,
+        )
+        dropTemplate.config(width=20)
+        dropTemplate.pack(anchor="w")
 
         # dropdown zur bildauswahl
         dropPattern = tk.OptionMenu(
             configFrame, pattern, *patternliste, command=bildauswahl
         )
-        dropPattern.pack()
+        dropPattern.config()
+        dropPattern.pack(anchor="w")
 
         dropThresh = tk.OptionMenu(
             configFrame, thresh, *ListOfThreshholding, command=bildauswahl
         )
-        dropThresh.pack()
+        dropThresh.config()
+        dropThresh.pack(anchor="w")
 
-        select(ListOfOrdersStillToDo[0])
+        # select(ListOfOrdersStillToDo[0])
         # dropdownmenu fuer Vorschaubild schwarzweis
         dropColor = tk.OptionMenu(
             configFrame, colorscheme, *ListOfColors, command=bildauswahl
         )
-        dropColor.pack()
-        threshhold = tk.Scale(configFrame, from_=0, to=255, orient=tk.HORIZONTAL)
+        dropColor.config(width=20)
+        dropColor.pack(anchor="w")
+        threshhold = tk.Scale(
+            configFrame, from_=0, to=255, orient=tk.HORIZONTAL, length=160
+        )
         threshhold.set(127)
         threshhold.bind("<ButtonRelease-1>", bildauswahl)
-        threshhold.pack()
+        threshhold.pack(anchor="w")
         invertbutton = tk.Checkbutton(
             configFrame, text="Inverted", variable=invertVar, command=invert
         )
-        invertbutton.pack()
+        invertbutton.pack(anchor="w", padx=30)
 
         startButton = tk.Button(
             overallFrame,
@@ -585,6 +781,6 @@ if __name__ == "__main__":
 
         select(ListOfOrdersStillToDo[0])
 
-        IrfanUI(overallFrame, 1, 4, 1, 1)
-        # Util.UIEnhance.putStuff(window, None)
+        IrfanUI(configFrame, 1, 4, 1, 1, pack=True)
+        augmentUI(extendoFrame)
         window.mainloop()
