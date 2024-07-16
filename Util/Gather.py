@@ -6,6 +6,7 @@ import os
 from zipfile import ZipFile
 import glob
 import xml.etree.ElementTree as ET
+import re
 
 
 # filter die ctabspace txtDateinach Paramtetern in filter.ini
@@ -33,23 +34,26 @@ def downloadZip(url):
     if not response.status_code == 200:
         print(
             "DOWNLOAD FEHLGESCHLAGEN. Vermutlich ist der Download Link abgelaufen ERROR CODE: "
-            + response.status_code
+            + str(response.status_code)
         )
         return None
     return response.content
 
 
 def downloadAndUnpack(spaltennamefürdownload, bestellungsidspaltenname):
-    if os.path.isdir("Zips/" + bestellungsidspaltenname):
-        return
-    answer = downloadZip(spaltennamefürdownload)
-    if answer == None:
-        exit()
-    with open("Zips/" + bestellungsidspaltenname + ".zip", mode="wb") as file:
-        file.write(answer)
-    with ZipFile("Zips/" + bestellungsidspaltenname + ".zip", "r") as f:
-        f.extractall("Zips/" + bestellungsidspaltenname)
-    os.remove("Zips/" + bestellungsidspaltenname + ".zip")
+    try:
+        if os.path.isdir("Zips/" + bestellungsidspaltenname):
+            return
+        answer = downloadZip(spaltennamefürdownload)
+        if answer == None:
+            return
+        with open("Zips/" + bestellungsidspaltenname + ".zip", mode="wb") as file:
+            file.write(answer)
+        with ZipFile("Zips/" + bestellungsidspaltenname + ".zip", "r") as f:
+            f.extractall("Zips/" + bestellungsidspaltenname)
+        os.remove("Zips/" + bestellungsidspaltenname + ".zip")
+    except Exception as e:
+        print(e)
 
 
 def multivalueCompare(dict, currentc):
@@ -57,7 +61,9 @@ def multivalueCompare(dict, currentc):
     values = list(dict.values())
     erg = True
     for item in keys:
-        if values[keys.index(item)] in currentc[item]:
+        pattern = re.compile(values[keys.index(item)])
+        # print(pattern.match)
+        if pattern.match(currentc[item]):
             pass
         else:
             erg = False
