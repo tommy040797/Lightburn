@@ -53,6 +53,49 @@ bildistda = True
 profiling = False
 
 
+def updateAugemntUI(objekte):
+    breitegrid = int(Util.Config.getUIColor()["Gridbreite"])
+    hoehegrid = int(Util.Config.getUIColor()["Gridhoehe"])
+    framehoehe = int(Util.Config.getUIColor()["Framehoehe"])
+    framebreite = int(Util.Config.getUIColor()["Framebreite"])
+    todo = Util.Config.getAugmentedUI()
+    keys = []
+    keylist = list(todo.keys())
+    valuelist = list(todo.values())
+    try:
+        for key in keylist:
+            keys.append(key.split(delimiter))
+        logger.info("Keys gesplittet")
+    except Exception as e:
+        logger.exception(e)
+    for key in keys:
+        nummer = int(key[2]) + breitegrid * (int(key[1]) - 1) - 1
+        if key[0] == "showimage":
+            img = Util.Jsonprocessing.getImage(
+                ordernumber.get(), valuelist[keys.index(key)]
+            )
+            if not img == None:
+                bild = Image.open(img)
+                size = Util.Imageprocessing.getscale(
+                    min(framehoehe, framebreite) * 0.9,
+                    min(framehoehe, framebreite) * 0.9,
+                    bild,
+                )
+                bild = bild.resize(
+                    size,
+                    Image.Resampling.NEAREST,
+                )
+                bild = ImageTk.PhotoImage(bild)
+                # objekte[nummer][0].configure(text="bild")
+                objekte[nummer][1].configure(image=bild)
+                objekte[nummer][1].image = bild
+            else:
+                objekte[nummer][1].configure(
+                    image="", text="An diesem Pfad gibt es kein Bild"
+                )
+                objekte[nummer][1].image = None
+
+
 def augmentUI(parent):
     def preview(evt):
         try:  # try catch um deselection von anderer liste zu ignorieren
@@ -223,6 +266,7 @@ def augmentUI(parent):
                     image="", text="An diesem Pfad gibt es kein Bild"
                 )
                 objekte[nummer][1].image = None
+    return objekte
 
 
 def IrfanUI(parent, gridx, gridy, rowspan, columnspan, pack):
@@ -529,6 +573,7 @@ def select(currentOrder):
         prof = profile.Profile()
         prof.enable()
     global patternliste
+    global objekte
     try:
         _, farbe = Util.Config.getXMLConfig(template.get().split(".")[0])
         colorscheme.set(farbe["farbart"])
@@ -574,7 +619,7 @@ def select(currentOrder):
     colordictS = Util.Config.getColorCodesSilver()
     colordictB = Util.Config.getColorCodesBlack()
     setBackground(asin, colordictB, colordictS)
-    augmentUI(extendoFrame)
+    updateAugemntUI(objekte)
     if profiling == True:
         prof.disable()
         stats = pstats.Stats(prof).strip_dirs().sort_stats("cumtime")
@@ -839,8 +884,9 @@ if __name__ == "__main__":
         )
         startButton.grid(row=5, column=1)
 
+        IrfanUI(configFrame, 1, 4, 1, 1, pack=True)
+        objekte = augmentUI(extendoFrame)
+
         select(ListOfOrdersStillToDo[0])
 
-        IrfanUI(configFrame, 1, 4, 1, 1, pack=True)
-        augmentUI(extendoFrame)
         window.mainloop()
