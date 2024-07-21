@@ -65,27 +65,39 @@ def augmentUI(parent):
             value = w.get(nummer)
             bild = ImageTk.PhotoImage(
                 Image.open(pfadzuallenmotiven + value).resize(
-                    (64, 64), Image.Resampling.NEAREST
+                    bildgroese, Image.Resampling.NEAREST
                 )
             )
-            objekte[ziel][3].configure(image=bild)
-            objekte[ziel][3].image = bild
+            objekte[ziel][4].configure(image=bild)
+            objekte[ziel][4].image = bild
         except:
             pass
 
     def putasactive(evt):
         try:
-            nummer = int(objekte[evt][1].curselection()[0])
-            value = objekte[evt][1].get(nummer)
+            nummer = int(objekte[evt][2].curselection()[0])
+            value = objekte[evt][2].get(nummer)
             pattern.set(pfadzuallenmotiven + value)
             bildauswahl(None)
-        except:
-            pass
+        except Exception as e:
+            logger.exception(e)
+            traceback.print_exc()
+
+    def useThisImg(evt):
+        try:
+            pattern.set(evt)
+            bildauswahl(None)
+        except Exception as e:
+            logger.exception(e)
+            traceback.print_exc()
 
     try:
         todo = Util.Config.getAugmentedUI()
         breitegrid = int(Util.Config.getUIColor()["Gridbreite"])
         hoehegrid = int(Util.Config.getUIColor()["Gridhoehe"])
+        framehoehe = int(Util.Config.getUIColor()["Framehoehe"])
+        framebreite = int(Util.Config.getUIColor()["Framebreite"])
+        bildgroese = (int(framehoehe / 4.4), int(framehoehe / 4.4))
         logger.info("AugmentedUI gelesen")
     except Exception as e:
         logger.exception(e)
@@ -112,16 +124,15 @@ def augmentUI(parent):
                 parent,
                 highlightbackground="yellow",
                 highlightthickness=2,
-                height=250,
-                width=240,
+                height=framehoehe,
+                width=framebreite,
             )
         )
-        frames[i - 1].pack_propagate(0)
+        frames[i].pack_propagate(0)
         if i % breitegrid == 0:
             j += 1
         frames[i].grid(row=j, column=(i % breitegrid) + 1)
         # print(j, (i % breitegrid) + 1)
-    print(len(frames))
     for key in keys:
         nummer = int(key[2]) + breitegrid * (int(key[1]) - 1) - 1
         if key[0] == "bilderauswahl":
@@ -130,43 +141,88 @@ def augmentUI(parent):
             for file in os.listdir(valuelist[keys.index(key)]):
                 if file.endswith(".png"):
                     files.append(file)
-            # frame = 0, listbox = 1, scrollbar = 2, previewbild = 3, button = 4
+            # frame = 1, listbox = 2, scrollbar = 3, previewbild = 4, button = 5
+            objekte[nummer].append(tk.Label(frames[nummer], text=key[3]))
+            objekte[nummer][0].pack(side="top", anchor="n")
             objekte[nummer].append(
                 tk.Frame(
                     frames[nummer],
                     padx=10,
                 ),
             )
-            objekte[nummer][0].pack(side="top", anchor="w")
+            objekte[nummer][1].pack(side="top", anchor="nw", fill="x")
             objekte[nummer].append(
                 tk.Listbox(
-                    objekte[nummer][0],
-                    width=30,
+                    objekte[nummer][1],
+                    width=int(framebreite / 8),
+                    height=int(framehoehe / 27),
                 )
             )
-            objekte[nummer][1].pack(side="left", fill="y")
+            objekte[nummer][2].pack(side="left", anchor="w")
             objekte[nummer].append(
                 tk.Scrollbar(
-                    objekte[nummer][0],
+                    objekte[nummer][1],
                     orient="vertical",
                 )
             )
-            objekte[nummer][2].config(command=objekte[nummer][1].yview)
-            objekte[nummer][2].pack(side="right", fill="y")
-            objekte[nummer][1].config(yscrollcommand=objekte[nummer][2].set)
+            objekte[nummer][3].config(command=objekte[nummer][2].yview)
+            objekte[nummer][3].pack(side="left", fill="y", anchor="w")
+            objekte[nummer][2].config(yscrollcommand=objekte[nummer][3].set)
             for item in files:
-                objekte[nummer][1].insert("end", item)
-            objekte[nummer][1].bind("<<ListboxSelect>>", preview)
+                objekte[nummer][2].insert("end", item)
+            objekte[nummer][2].bind("<<ListboxSelect>>", preview)
             objekte[nummer].append(tk.Label(frames[nummer]))
-            objekte[nummer][3].pack(side="left", padx=10)
+            objekte[nummer][4].pack(side="left", padx=5)
             objekte[nummer].append(
                 tk.Button(
                     frames[nummer],
                     text="Bild übernehmen",
                 )
             )
-            objekte[nummer][4].config(command=lambda t=nummer: putasactive(t))
-            objekte[nummer][4].pack(side="right", padx=10)
+            objekte[nummer][5].config(command=lambda t=nummer: putasactive(t))
+            objekte[nummer][5].pack(side="right", padx=5)
+        if key[0] == "showimage":
+            objekte[nummer].append(tk.Label(frames[nummer], text=key[3]))
+            objekte[nummer][0].pack(side="top", anchor="n")
+            img = Util.Jsonprocessing.getImage(
+                ordernumber.get(), valuelist[keys.index(key)]
+            )
+            objekte[nummer].append(
+                tk.Label(
+                    frames[nummer],
+                    padx=10,
+                    pady=10,
+                )
+            )
+            objekte[nummer][1].pack()
+            objekte[nummer].append(
+                tk.Button(
+                    frames[nummer],
+                    text="Dieses Bild verwenden",
+                )
+            )
+            objekte[nummer][2].config(command=lambda t=img: useThisImg(t))
+            objekte[nummer][2].pack(side="bottom", pady=5)
+            if not img == None:
+                bild = Image.open(img)
+                size = Util.Imageprocessing.getscale(
+                    min(framehoehe, framebreite) * 0.9,
+                    min(framehoehe, framebreite) * 0.9,
+                    bild,
+                )
+                bild = bild.resize(
+                    size,
+                    Image.Resampling.NEAREST,
+                )
+                bild = ImageTk.PhotoImage(bild)
+                # objekte[nummer][0].configure(text="bild")
+                objekte[nummer][1].configure(image=bild)
+                objekte[nummer][1].image = bild
+            else:
+                objekte[nummer][1].configure(
+                    image="", text="An diesem Pfad gibt es kein Bild"
+                )
+                objekte[nummer][1].image = None
 
 
 def IrfanUI(parent, gridx, gridy, rowspan, columnspan, pack):
@@ -386,6 +442,9 @@ def textHandlingGUI(currentOrder):
     global textunterbild
     global textueberbild
     try:
+        patternvorschauUser.configure(text="")
+        textunterbild.configure(text="")
+        textueberbild.configure(text="")
         textAbove = Util.Jsonprocessing.getTextAbove(currentOrder)
         textBelow = Util.Jsonprocessing.getTextBelow(currentOrder)
         fonts = Util.Jsonprocessing.getFont(currentOrder)
@@ -515,8 +574,9 @@ def select(currentOrder):
     colordictS = Util.Config.getColorCodesSilver()
     colordictB = Util.Config.getColorCodesBlack()
     setBackground(asin, colordictB, colordictS)
+    augmentUI(extendoFrame)
     if profiling == True:
-        # prof.disable()
+        prof.disable()
         stats = pstats.Stats(prof).strip_dirs().sort_stats("cumtime")
         stats.print_stats(10)  # top 10 rows
 
@@ -567,7 +627,7 @@ def process():
 
 if __name__ == "__main__":
     logging.basicConfig(filename="logs.log", level=logging.INFO)
-    print("Version: 0.3")
+    print("Version: 0.4")
     # initiale Belegung der Variablen
     order = None
     ListOfOrdersStillToDo = []
