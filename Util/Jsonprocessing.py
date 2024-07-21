@@ -245,3 +245,30 @@ def getAsin(orderid):
         except:
             return ""
     return childerin1
+
+
+def getImage(orderid, pfad):
+    gui = Util.Config.getGuiConfig()
+    pfadteil = Util.Config.getConfig()
+    pfadteil = pfadteil["PfadZuAllenMotiven"]
+    try:
+        file = glob.glob("Zips/" + orderid + "/*.json")
+        with open(file[0], "r", encoding="UTF-8") as f:
+            data = json.load(f)
+            if "%" in pfad:
+                pfad = pfad.replace("%", "")
+                try:
+                    ergint = pfadteil + eval(pfad) + ".png"
+                    return ergint
+                except:
+                    pass
+            elif "$" in pfad:
+                pfad = pfad.replace("$", "")
+                try:
+
+                    ergint = str(os.getcwd()) + "\Zips\\" + orderid + "\\" + eval(pfad)
+                    return ergint
+                except:
+                    pass
+    except:
+        return None

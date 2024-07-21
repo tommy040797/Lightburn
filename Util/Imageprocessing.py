@@ -5,6 +5,7 @@ import numpy as np
 from PIL import ImageOps
 import Util
 import Util.Config
+import traceback
 
 
 def getscale(targetwidth, maxhoehe, img):
@@ -19,7 +20,7 @@ def getscale(targetwidth, maxhoehe, img):
     return (int(targetw), int(targeth))
 
 
-def durchsichtigWeis(img):
+"""def durchsichtigWeis(img):
     datas = img.getdata()
     newData = []
     for item in datas:
@@ -29,12 +30,20 @@ def durchsichtigWeis(img):
             newData.append(item)
 
     img.putdata(newData)
-    return img
+    return img"""
+
+
+def durchsichtigWeis(img):
+    data = np.asarray(img.convert("RGBA")).copy()
+    transparent = data[:, :, 3] == 0
+    data[transparent] = [255, 255, 255, 255]
+    new_image = Image.fromarray(data, "RGBA")
+
+    return new_image
 
 
 def weisDurchsichtig(img):
     x = np.asarray(img.convert("RGBA")).copy()
-
     x[:, :, 3] = (255 * (x[:, :, :3] != 255).any(axis=2)).astype(np.uint8)
 
     return Image.fromarray(x)
@@ -54,9 +63,8 @@ def schwarzweis(cholorscheme, vorschaubildpattern, thresh, threshvalue):
     elif cholorscheme == "Schwarz-Weiß Dithering":
         try:
             vorschaubildpattern = durchsichtigWeis(vorschaubildpattern)
-            pass
         except:
-            pass
+            traceback.print_exc()
         vorschaubildpattern = vorschaubildpattern.convert("1")
         vorschaubildpattern = cropImage(vorschaubildpattern)
         vorschaubildpattern = vorschaubildpattern.convert("RGBA")
@@ -65,7 +73,7 @@ def schwarzweis(cholorscheme, vorschaubildpattern, thresh, threshvalue):
     elif cholorscheme == "Schwarz-Weiß":
         try:
             vorschaubildpattern = durchsichtigWeis(vorschaubildpattern)
-        except:
+        except Exception as e:
             pass
         vorschaubildpattern = vorschaubildpattern.convert("RGB")
         array = np.array(vorschaubildpattern)
