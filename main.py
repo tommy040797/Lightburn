@@ -33,7 +33,7 @@ try:
     anzeigenzielbreite = int(configdict["GuiBildbreite"])
     anzeigenmaxhöhe = int(configdict["GuiBildhoehe"])
     nodownload = configdict["DebugNoDownload"]
-
+    skalierungsfaktor = float(configdict["GroessenskalierungswertLightburn"])
     targetbreitelb = int(configdict["Flaschenbreite"])
     maxhoehelb = int(configdict["Flaschenhoehe"])
 
@@ -43,7 +43,8 @@ try:
     pfadzuirfan = configdict["PfadZuIrfanview"]
     orderIdSpaltenName = configdict["ID-Spaltenname"]
     pfadzuallenmotiven = configdict["PfadZuAllenMotiven"]
-except:
+except Exception as e:
+    traceback.print_exc(e)
     print(
         "Standardconfig wurde nicht gefunden, oder ein Fehler liegt vor, Programm wird beendet"
     )
@@ -53,7 +54,7 @@ bildistda = True
 profiling = False
 
 
-def updateAugemntUI(objekte):
+def updateAugmentUI(objekte):
     breitegrid = int(Util.Config.getUIColor()["Gridbreite"])
     hoehegrid = int(Util.Config.getUIColor()["Gridhoehe"])
     framehoehe = int(Util.Config.getUIColor()["Framehoehe"])
@@ -74,11 +75,17 @@ def updateAugemntUI(objekte):
             img = Util.Jsonprocessing.getImage(
                 ordernumber.get(), valuelist[keys.index(key)]
             )
+
             if not img == None:
-                bild = Image.open(img)
+                objekte[nummer][2].set(img)
+                try:
+                    bild = Image.open(img)
+                except:
+                    print(img + "kann nicht geöffnet werden")
+                    return None
                 size = Util.Imageprocessing.getscale(
-                    min(framehoehe, framebreite) * 0.9,
-                    min(framehoehe, framebreite) * 0.9,
+                    min(framehoehe, framebreite) * 0.75,
+                    min(framehoehe, framebreite) * 0.75,
                     bild,
                 )
                 bild = bild.resize(
@@ -94,6 +101,14 @@ def updateAugemntUI(objekte):
                     image="", text="An diesem Pfad gibt es kein Bild"
                 )
                 objekte[nummer][1].image = None
+        if key[0] == "showtext":
+            ## header = 0, textfenster = 1 - laenge von config file
+            values = valuelist[keys.index(key)].split(delimiter)
+            for i in range(len(values)):
+                objekte[nummer][i + 1].config(
+                    text=Util.Jsonprocessing.getText(ordernumber.get(), values[i])
+                )
+            # print(Util.Jsonprocessing.getText(ordernumber.get(), values[i]))
 
 
 def augmentUI(parent):
@@ -128,7 +143,7 @@ def augmentUI(parent):
 
     def useThisImg(evt):
         try:
-            pattern.set(evt)
+            pattern.set(evt.get())
             bildauswahl(None)
         except Exception as e:
             logger.exception(e)
@@ -143,6 +158,7 @@ def augmentUI(parent):
         bildgroese = (int(framehoehe / 4.4), int(framehoehe / 4.4))
         logger.info("AugmentedUI gelesen")
     except Exception as e:
+        traceback.print_exception(e)
         logger.exception(e)
         print("Problem beim GUI Custom Config lesen")
     keys = []
@@ -184,8 +200,10 @@ def augmentUI(parent):
             for file in os.listdir(valuelist[keys.index(key)]):
                 if file.endswith(".png"):
                     files.append(file)
-            # frame = 1, listbox = 2, scrollbar = 3, previewbild = 4, button = 5
-            objekte[nummer].append(tk.Label(frames[nummer], text=key[3]))
+            # header = 0, frame = 1, listbox = 2, scrollbar = 3, previewbild = 4, button = 5
+            objekte[nummer].append(
+                tk.Label(frames[nummer], text=key[3], wraplength=framebreite - 20)
+            )
             objekte[nummer][0].pack(side="top", anchor="n")
             objekte[nummer].append(
                 tk.Frame(
@@ -225,11 +243,11 @@ def augmentUI(parent):
             objekte[nummer][5].config(command=lambda t=nummer: putasactive(t))
             objekte[nummer][5].pack(side="right", padx=5)
         if key[0] == "showimage":
-            objekte[nummer].append(tk.Label(frames[nummer], text=key[3]))
-            objekte[nummer][0].pack(side="top", anchor="n")
-            img = Util.Jsonprocessing.getImage(
-                ordernumber.get(), valuelist[keys.index(key)]
+            # header = 0, bild = 1, name des bildes = 2, button = 3
+            objekte[nummer].append(
+                tk.Label(frames[nummer], text=key[3], wraplength=framebreite - 20)
             )
+            objekte[nummer][0].pack(side="top", anchor="n")
             objekte[nummer].append(
                 tk.Label(
                     frames[nummer],
@@ -238,34 +256,32 @@ def augmentUI(parent):
                 )
             )
             objekte[nummer][1].pack()
+            objekte[nummer].append(tk.StringVar())
             objekte[nummer].append(
                 tk.Button(
                     frames[nummer],
                     text="Dieses Bild verwenden",
                 )
             )
-            objekte[nummer][2].config(command=lambda t=img: useThisImg(t))
-            objekte[nummer][2].pack(side="bottom", pady=5)
-            if not img == None:
-                bild = Image.open(img)
-                size = Util.Imageprocessing.getscale(
-                    min(framehoehe, framebreite) * 0.9,
-                    min(framehoehe, framebreite) * 0.9,
-                    bild,
+            objekte[nummer][3].config(
+                command=lambda t=objekte[nummer][2]: useThisImg(t)
+            )
+            objekte[nummer][3].pack(side="bottom", pady=5)
+        if key[0] == "showtext":
+            ## header = 0, textfenster = 1 - laenge von config file
+            objekte[nummer].append(
+                tk.Label(frames[nummer], text=key[3], wraplength=framebreite - 20)
+            )
+            objekte[nummer][0].pack(side="top", anchor="n")
+            values = valuelist[keys.index(key)].split(delimiter)
+            for i in range(len(values)):
+                objekte[nummer].append(
+                    tk.Label(
+                        frames[nummer], padx=10, pady=10, wraplength=framebreite - 20
+                    )
                 )
-                bild = bild.resize(
-                    size,
-                    Image.Resampling.NEAREST,
-                )
-                bild = ImageTk.PhotoImage(bild)
-                # objekte[nummer][0].configure(text="bild")
-                objekte[nummer][1].configure(image=bild)
-                objekte[nummer][1].image = bild
-            else:
-                objekte[nummer][1].configure(
-                    image="", text="An diesem Pfad gibt es kein Bild"
-                )
-                objekte[nummer][1].image = None
+                objekte[nummer][i + 1].pack()
+
     return objekte
 
 
@@ -440,13 +456,14 @@ def bildauswahl(dummy):
                 allemotive = False
             else:
                 allemotive = True
-            if asin in colordictS.keys() and allemotive == True:
+            if asin in colordictS.keys():
                 vorschaubildpattern = Util.Imageprocessing.invertAlt(
                     vorschaubildpattern
                 )
                 vorschaubildpattern = Util.Imageprocessing.weisZuSilber(
                     vorschaubildpattern
                 )
+
             size = Util.Imageprocessing.getscale(
                 anzeigenzielbreite, anzeigenmaxhöhe, vorschaubildpattern
             )
@@ -579,7 +596,10 @@ def select(currentOrder):
         colorscheme.set(farbe["farbart"])
     except:
         print("fehler beim lesen des Templates")
-
+    asin = Util.Jsonprocessing.getAsin(ordernumber.get())
+    colordictS = Util.Config.getColorCodesSilver()
+    colordictB = Util.Config.getColorCodesBlack()
+    setBackground(asin, colordictB, colordictS)
     # wenn wir kein bild haben:
     if Util.Jsonprocessing.getIfOnlyText(currentOrder):
         #
@@ -615,11 +635,8 @@ def select(currentOrder):
         comment.configure(text=Util.Jsonprocessing.getComments(ordernumber.get()))
     except:
         print("Kommentar kann nicht angezeigt werden")
-    asin = Util.Jsonprocessing.getAsin(ordernumber.get())
-    colordictS = Util.Config.getColorCodesSilver()
-    colordictB = Util.Config.getColorCodesBlack()
-    setBackground(asin, colordictB, colordictS)
-    updateAugemntUI(objekte)
+
+    updateAugmentUI(objekte)
     if profiling == True:
         prof.disable()
         stats = pstats.Stats(prof).strip_dirs().sort_stats("cumtime")
@@ -655,6 +672,7 @@ def process():
         targetbreitelb,
         maxhoehelb,
         currentPatternImage,
+        skalierungsfaktor,
     )
     try:
         subprocess.Popen(
@@ -754,7 +772,7 @@ if __name__ == "__main__":
         )
         extendoFrame.grid(row=1, column=2)
 
-        comment = tk.Label(overallFrame, text="")
+        comment = tk.Label(overallFrame, text="", wraplength=250)
         comment.grid(row=3, column=3, columnspan=1)
 
         # Vorschaubild für den User
