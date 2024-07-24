@@ -1,5 +1,4 @@
 import configparser
-import codecs
 
 
 def getFilterConfig():
@@ -62,3 +61,10 @@ def getAugmentedUI():
     config.optionxform = str
     config.read("Gui.ini")
     return config._sections["CustomElements"]
+
+
+def getFontSizeConfig():
+    config = configparser.ConfigParser()
+    config.optionxform = str
+    config.read("fontScales.ini")
+    return config._sections["Default"]

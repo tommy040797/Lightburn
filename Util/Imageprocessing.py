@@ -137,7 +137,7 @@ def invert(img):
         print("problem beim invertieren")
 
 
-def invertAlt(img):
+def invertAlt(img):  # ohne alpha invertieren
     try:
         img = img.convert("RGBA")
         r, g, b, a = img.split()

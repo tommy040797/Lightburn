@@ -3,6 +3,7 @@ import json
 import glob
 import Util.Config
 import os
+import traceback
 
 
 def getPreviewImage(orderid):
@@ -271,4 +272,22 @@ def getImage(orderid, pfad):
                 except:
                     pass
     except:
+        return None
+
+
+def getText(orderid, pfad):
+    try:
+        file = glob.glob("Zips/" + orderid + "/*.json")
+        with open(file[0], "r", encoding="UTF-8") as f:
+            data = json.load(f)
+            erg = eval(pfad)
+            return erg
+    except Exception as e:
+        # traceback.print_exception(e)
+        print(
+            "kein problem, den pfad gibts nur nichtbei der bestelltung"
+            + orderid
+            + ", bei der methode showtext"
+            + pfad
+        )
         return None

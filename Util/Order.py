@@ -8,9 +8,21 @@ import glob
 import json
 import os
 import math
+import logging
+import traceback
+
+logger = logging.getLogger(__name__)
 
 
-def processxml(template, delimiter, orderid, targetbreitelb, maxhoehelb, patternImg):
+def processxml(
+    template,
+    delimiter,
+    orderid,
+    targetbreitelb,
+    maxhoehelb,
+    patternImg,
+    skalierungsfaktor,
+):
     try:
         imageDict, _ = Util.Config.getXMLConfig(template.split(".")[0])
     except:
@@ -118,7 +130,83 @@ def processxml(template, delimiter, orderid, targetbreitelb, maxhoehelb, pattern
                     elif farbe == "Schwarz":
                         erg = schwarz[pfad.tag]
                     eval(key[0]).set(key[1], str(erg))
-                # xml.write("test.xml")
+                elif key[2] == "matrixskalierung":
+                    try:
+                        logger.info("Font für scaling")
+                        fontdict = Util.Config.getFontSizeConfig()
+                        font = eval(values[1])
+                        print(font)
+                        fontsize = fontdict[font]
+                    except Exception as e:
+                        # traceback.print_exc(e)
+                        logger.info("keine Fontspezialisierung, oder bild")
+                        fontsize = 1
+
+                    try:
+                        scaleX = eval(values[0])["scaleX"]
+                        scaleY = eval(values[0])["scaleY"]
+
+                    except Exception as e:
+                        traceback.print_exception(e)
+                        logger.info(
+                            "kein Custom Bild, deswegen keine positionsverschiebung"
+                        )
+                        continue
+                    faktorX = scaleX * (fontsize) * skalierungsfaktor
+                    faktorY = scaleY * (fontsize) * skalierungsfaktor
+                    try:
+                        matrixstringliste = eval(key[0]).text.split(" ")
+                    except:
+                        matrixstringliste = ["0", "0", "0", "0", "0", "0"]
+                    matrixfloatliste = [float(i) for i in matrixstringliste]
+                    targetliste = [0, 0, 0, 0, 0, 0]
+                    # matrixmultiplikation mit der translationsmatrix
+                    targetliste[0] = matrixfloatliste[0] * faktorX
+                    targetliste[1] = matrixfloatliste[1] * faktorX
+                    targetliste[2] = matrixfloatliste[2] * faktorY
+                    targetliste[3] = matrixfloatliste[3] * faktorY
+                    targetliste[4] = matrixfloatliste[4]
+                    targetliste[5] = matrixfloatliste[5]
+                    matrixstringliste = [str(i) for i in targetliste]
+                    s1 = ""
+                    for z in matrixstringliste:
+                        s1 += " " + z
+                    # führendes leerzeichen entfernen sonst bug
+                    string = s1[1:]
+                    eval(key[0]).text = string
+                elif key[2] == "matrixtranslation123123":
+                    print(eval(values[0]))
+                    print(eval(values[1]))
+                    print(eval(values[2]))
+                    print(eval(values[3]))
+                    try:
+                        matrixstringliste = eval(key[0]).text.split(" ")
+                    except:
+                        matrixstringliste = ["0", "0", "0", "0", "0", "0"]
+                    matrixfloatliste = [float(i) for i in matrixstringliste]
+                    targetliste = [0, 0, 0, 0, 0, 0]
+                    # matrixmultiplikation mit der translationsmatrix
+                    targetliste[0] = matrixfloatliste[0] * math.cos(
+                        math.radians(angle)
+                    ) + matrixfloatliste[2] * math.sin(math.radians(angle))
+                    targetliste[1] = matrixfloatliste[1] * math.cos(
+                        math.radians(angle)
+                    ) + matrixfloatliste[3] * math.sin(math.radians(angle))
+                    targetliste[2] = matrixfloatliste[0] * -math.sin(
+                        math.radians(angle)
+                    ) + matrixfloatliste[2] * math.cos(math.radians(angle))
+                    targetliste[3] = matrixfloatliste[1] * -math.sin(
+                        math.radians(angle)
+                    ) + matrixfloatliste[3] * math.cos(math.radians(angle))
+                    targetliste[4] = matrixfloatliste[4]
+                    targetliste[5] = matrixfloatliste[5]
+                    matrixstringliste = [str(i) for i in targetliste]
+                    s1 = ""
+                    for x in matrixstringliste:
+                        s1 += " " + x
+                    # führendes leerzeichen entfernen sonst bug
+                    string = s1[1:]
+                    eval(key[0]).text = string
             if not patternImg == None:
                 eval(keys[0][0]).set(
                     keys[0][1], str(os.getcwd()) + "\\Util\\pattern.png"
@@ -130,14 +218,12 @@ def processxml(template, delimiter, orderid, targetbreitelb, maxhoehelb, pattern
                     "lightburn File konnte nicht geschrieben werden, evtl. Schreibgeschützt, evtl. PC neu starten"
                 )
                 return
-        except:
-            try:
-                print(
-                    key[0]
-                    + "hat einen error ausgeworfen, bitte anderes Template verwenden oder Christian kontaktieren"
-                )
-            except:
-                print("schwerwiegender Fehler, evtl Surrogate Pozesse schließen")
+        except Exception as e:
+            traceback.print_exception(e)
+            print(
+                key[0]
+                + "hat einen error ausgeworfen, bitte anderes Template verwenden oder Christian kontaktieren"
+            )
 
     # print(keys)
 
