@@ -34,6 +34,7 @@ try:
     anzeigenmaxhöhe = int(configdict["GuiBildhoehe"])
     nodownload = configdict["DebugNoDownload"]
     skalierungsfaktor = float(configdict["GroessenskalierungswertLightburn"])
+    pixelinmm = float(configdict["PixelInMM"])
     targetbreitelb = int(configdict["Flaschenbreite"])
     maxhoehelb = int(configdict["Flaschenhoehe"])
 
@@ -673,6 +674,7 @@ def process():
         maxhoehelb,
         currentPatternImage,
         skalierungsfaktor,
+        pixelinmm,
     )
     try:
         subprocess.Popen(
