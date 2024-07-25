@@ -10,6 +10,7 @@ import os
 import math
 import logging
 import traceback
+import numpy as np
 
 logger = logging.getLogger(__name__)
 
@@ -22,6 +23,7 @@ def processxml(
     maxhoehelb,
     patternImg,
     skalierungsfaktor,
+    pixelInMM,
 ):
     try:
         imageDict, _ = Util.Config.getXMLConfig(template.split(".")[0])
@@ -135,25 +137,24 @@ def processxml(
                         logger.info("Font für scaling")
                         fontdict = Util.Config.getFontSizeConfig()
                         font = eval(values[1])
-                        print(font)
-                        fontsize = fontdict[font]
+                        fontsize = float(fontdict[font])
                     except Exception as e:
-                        # traceback.print_exc(e)
+                        # traceback.print_exception(e)
+                        # logger.exception(e)
                         logger.info("keine Fontspezialisierung, oder bild")
                         fontsize = 1
-
                     try:
                         scaleX = eval(values[0])["scaleX"]
                         scaleY = eval(values[0])["scaleY"]
 
                     except Exception as e:
-                        traceback.print_exception(e)
+                        # traceback.print_exception(e)
                         logger.info(
                             "kein Custom Bild, deswegen keine positionsverschiebung"
                         )
                         continue
-                    faktorX = scaleX * (fontsize) * skalierungsfaktor
-                    faktorY = scaleY * (fontsize) * skalierungsfaktor
+                    faktorX = scaleX * (1 / fontsize) * skalierungsfaktor
+                    faktorY = scaleY * (1 / fontsize) * skalierungsfaktor
                     try:
                         matrixstringliste = eval(key[0]).text.split(" ")
                     except:
@@ -174,39 +175,63 @@ def processxml(
                     # führendes leerzeichen entfernen sonst bug
                     string = s1[1:]
                     eval(key[0]).text = string
-                elif key[2] == "matrixtranslation123123":
-                    print(eval(values[0]))
-                    print(eval(values[1]))
-                    print(eval(values[2]))
-                    print(eval(values[3]))
+                elif key[2] == "matrixtranslation":
                     try:
-                        matrixstringliste = eval(key[0]).text.split(" ")
+                        mitteVonItemInPixeln = (
+                            (
+                                (eval(values[3])["width"] * eval(values[4])["scaleX"])
+                                * 0.5
+                            )
+                            + eval(values[2])["x"]
+                            - eval(values[0])["x"],
+                            (
+                                eval(values[3])["height"]
+                                * eval(values[4])["scaleY"]
+                                * 0.5
+                            )
+                            + eval(values[2])["y"],
+                        )
+                        mitteVonPlacementPane = (
+                            0.5 * eval(values[1])["width"],
+                            eval(values[1])["height"] * 0.5 + eval(values[0])["y"],
+                        )
+                        verschiebevalue = np.subtract(
+                            mitteVonItemInPixeln, mitteVonPlacementPane
+                        )
+                        verschiebevalue[1] = verschiebevalue[1] * -1
+                        # print(verschiebevalue)
+                        xverschiebung = verschiebevalue[0] / pixelInMM
+                        yverschiebung = verschiebevalue[1] / pixelInMM
+                        try:
+                            matrixstringliste = eval(key[0]).text.split(" ")
+                        except:
+                            matrixstringliste = ["0", "0", "0", "0", "0", "0"]
+                        matrixfloatliste = [float(i) for i in matrixstringliste]
+                        targetliste = [0, 0, 0, 0, 0, 0]
+                        # matrixmultiplikation mit der translationsmatrix
+                        targetliste[0] = matrixfloatliste[0]
+                        targetliste[1] = matrixfloatliste[1]
+                        targetliste[2] = matrixfloatliste[2]
+                        targetliste[3] = matrixfloatliste[3]
+                        targetliste[4] = (
+                            matrixfloatliste[0] * xverschiebung
+                            + matrixfloatliste[2] * yverschiebung
+                            + matrixfloatliste[4]
+                        )
+                        targetliste[5] = (
+                            matrixfloatliste[1] * xverschiebung
+                            + matrixfloatliste[3] * yverschiebung
+                            + matrixfloatliste[5]
+                        )
+                        matrixstringliste = [str(i) for i in targetliste]
+                        s1 = ""
+                        for x in matrixstringliste:
+                            s1 += " " + x
+                        # führendes leerzeichen entfernen sonst bug
+                        string = s1[1:]
+                        eval(key[0]).text = string
                     except:
-                        matrixstringliste = ["0", "0", "0", "0", "0", "0"]
-                    matrixfloatliste = [float(i) for i in matrixstringliste]
-                    targetliste = [0, 0, 0, 0, 0, 0]
-                    # matrixmultiplikation mit der translationsmatrix
-                    targetliste[0] = matrixfloatliste[0] * math.cos(
-                        math.radians(angle)
-                    ) + matrixfloatliste[2] * math.sin(math.radians(angle))
-                    targetliste[1] = matrixfloatliste[1] * math.cos(
-                        math.radians(angle)
-                    ) + matrixfloatliste[3] * math.sin(math.radians(angle))
-                    targetliste[2] = matrixfloatliste[0] * -math.sin(
-                        math.radians(angle)
-                    ) + matrixfloatliste[2] * math.cos(math.radians(angle))
-                    targetliste[3] = matrixfloatliste[1] * -math.sin(
-                        math.radians(angle)
-                    ) + matrixfloatliste[3] * math.cos(math.radians(angle))
-                    targetliste[4] = matrixfloatliste[4]
-                    targetliste[5] = matrixfloatliste[5]
-                    matrixstringliste = [str(i) for i in targetliste]
-                    s1 = ""
-                    for x in matrixstringliste:
-                        s1 += " " + x
-                    # führendes leerzeichen entfernen sonst bug
-                    string = s1[1:]
-                    eval(key[0]).text = string
+                        pass
             if not patternImg == None:
                 eval(keys[0][0]).set(
                     keys[0][1], str(os.getcwd()) + "\\Util\\pattern.png"
