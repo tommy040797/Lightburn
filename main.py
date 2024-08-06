@@ -18,7 +18,7 @@ import logging
 import shutil
 
 
-# TODO: logs beim gui lesen, layoutmanager
+# TODO: logs beim gui lesen, layoutmanager skalierung, vorschau mit template, farbe wenn in text was drin steht, unterodner von bildern miteinbeziehen
 try:
     os.remove("logs.log")
 except:
@@ -55,6 +55,13 @@ bildistda = True
 profiling = False
 
 
+def reset():
+    textueberbild.configure(text="")
+    textunterbild.configure(text="")
+    patternvorschauUser.configure(image="", text="")
+    patternvorschauUser.image = None
+
+
 def updateAugmentUI(objekte):
     breitegrid = int(Util.Config.getUIColor()["Gridbreite"])
     hoehegrid = int(Util.Config.getUIColor()["Gridhoehe"])
@@ -76,7 +83,9 @@ def updateAugmentUI(objekte):
             img = Util.Jsonprocessing.getImage(
                 ordernumber.get(), valuelist[keys.index(key)]
             )
-
+            print(img)
+            objekte[nummer][1].configure(image="")
+            objekte[nummer][1].image = None
             if not img == None:
                 objekte[nummer][2].set(img)
                 try:
@@ -105,6 +114,9 @@ def updateAugmentUI(objekte):
         if key[0] == "showtext":
             ## header = 0, textfenster = 1 - laenge von config file
             values = valuelist[keys.index(key)].split(delimiter)
+            for i in range(len(values)):
+                objekte[nummer][i + 1].configure(text="")
+
             for i in range(len(values)):
                 objekte[nummer][i + 1].config(
                     text=Util.Jsonprocessing.getText(ordernumber.get(), values[i])
@@ -137,7 +149,7 @@ def augmentUI(parent):
             nummer = int(objekte[evt][2].curselection()[0])
             value = objekte[evt][2].get(nummer)
             pattern.set(pfadzuallenmotiven + value)
-            bildauswahl(None)
+            updateVorschaubild(None)
         except Exception as e:
             logger.exception(e)
             traceback.print_exc()
@@ -145,7 +157,7 @@ def augmentUI(parent):
     def useThisImg(evt):
         try:
             pattern.set(evt.get())
-            bildauswahl(None)
+            updateVorschaubild(None)
         except Exception as e:
             logger.exception(e)
             traceback.print_exc()
@@ -346,11 +358,14 @@ def IrfanUI(parent, gridx, gridy, rowspan, columnspan, pack):
     buttonReload.pack(pady=5, fill="x")
 
 
-def setBackground(asin, colordictB, colordictS):
+def setBackground():
     global patternvorschauFrame
     global patternvorschauUser
     global textueberbild
     global textunterbild
+    asin = Util.Jsonprocessing.getAsin(ordernumber.get())
+    colordictS = Util.Config.getColorCodesSilver()
+    colordictB = Util.Config.getColorCodesBlack()
     if asin in colordictB.keys():
         try:
             patternvorschauFrame.configure(bg=colordictB[asin])
@@ -402,7 +417,7 @@ def invert():
             vorschaubildpattern = Util.Imageprocessing.invertAlt(vorschaubildpattern)
 
         else:
-            bildauswahl(None)
+            updateVorschaubild(None)
             return
 
         currentPatternImage = vorschaubildpattern
@@ -426,27 +441,54 @@ def invert():
         print("Problem beim Funktionsaufruf des invertierens" + str(e))
 
 
-def bildauswahl(dummy):
-
+def updateVorschaubild(dummy):
     global bildistda
     global currentPatternImage
-    if Util.Jsonprocessing.getIfOnlyText(ordernumber.get()):
-        return None
-    erg, hits = Util.Jsonprocessing.getOnlyPattern(ordernumber.get(), delimiter)
-    if hits == 0:
+    guiTemplateToUse = Util.Config.getXMLConfig(template.get().split(".")[0])[1]["gui"]
+    # loaden und unloaden von Elementen
+    if guiTemplateToUse == "Senkrecht":
+        textueberbild.pack_forget()
+        patternvorschauUser.pack_forget()
+        textunterbild.pack_forget()
+        textueberbild.pack(side="left", fill="both", expand="yes")
+        patternvorschauUser.pack(side="left", fill="both", expand="yes")
+        textunterbild.pack(side="left", fill="both", expand="yes")
+        textueberbild.config(wraplength=1)
+        patternvorschauUser.config(wraplength=1)
+        textunterbild.config(wraplength=1)
         bildistda = False
-        patternvorschauUser.configure(image="")
-        patternvorschauUser.image = None
-        textHandlingGUI(ordernumber.get())
-
+    elif guiTemplateToUse == "Waagerecht":
+        textueberbild.pack_forget()
+        patternvorschauUser.pack_forget()
+        textunterbild.pack_forget()
+        textueberbild.pack(fill="both", expand="yes")
+        patternvorschauUser.pack(fill="both", expand="yes")
+        textunterbild.pack(fill="both", expand="yes")
+        textueberbild.config(wraplength=0)
+        patternvorschauUser.config(wraplength=0)
+        textunterbild.config(wraplength=0)
+        bildistda = False
     else:
+        textueberbild.pack_forget()
+        patternvorschauUser.pack_forget()
+        textunterbild.pack_forget()
+        textueberbild.pack(fill="both", expand="yes")
+        patternvorschauUser.pack(fill="both", expand="yes")
+        textunterbild.pack(fill="both", expand="yes")
+        textueberbild.config(wraplength=0)
+        patternvorschauUser.config(wraplength=0)
+        textunterbild.config(wraplength=0)
         bildistda = True
+
+    patternvorschauUser.configure(image="")
+    patternvorschauUser.image = None
+    textHandlingGUI(ordernumber.get(), guiTemplateToUse)
+    if guiTemplateToUse == "Bild":
         try:
             patternName = pattern.get()
             vorschaubildpattern = Image.open(patternName)
             asin = Util.Jsonprocessing.getAsin(ordernumber.get())
             colordictS = Util.Config.getColorCodesSilver()
-
             vorschaubildpattern = Util.Imageprocessing.schwarzweis(
                 colorscheme.get(), vorschaubildpattern, thresh.get(), threshhold.get()
             )
@@ -478,29 +520,14 @@ def bildauswahl(dummy):
             invertVar.set(0)
 
         except Exception as e:
-            print(patternName + " wurde nicht gefunden, bitte überprüfen" + str(e))
+            reset()
+            # traceback.print_exception(e)
+            if not patternName == "Es gibt kein Bild":
+                print(patternName + " wurde nicht gefunden, bitte überprüfen")
             return
 
 
-def vorschaubild(currentOrder):
-    global vorschaubildUser
-    try:
-        previewName = Util.Jsonprocessing.getPreviewImage(currentOrder)
-        vorschaubild = Image.open("Zips/" + currentOrder + "/" + previewName)
-        size = Util.Imageprocessing.getscale(
-            anzeigenzielbreite,
-            anzeigenmaxhöhe + 100,  # maxhöhe + 100 um für text in pattern account
-            vorschaubild,
-        )
-        vorschaubild = vorschaubild.resize(size, Image.Resampling.BILINEAR)
-        vorschaubild = ImageTk.PhotoImage(vorschaubild)
-        vorschaubildUser.configure(image=vorschaubild)
-        vorschaubildUser.image = vorschaubild
-    except:
-        print("Amazon vorschaubild konnte nicht angezeigt werden")
-
-
-def textHandlingGUI(currentOrder):
+def textHandlingGUI(currentOrder, guistyle):
     global textunterbild
     global textueberbild
     try:
@@ -516,31 +543,42 @@ def textHandlingGUI(currentOrder):
         print(
             "Bei einer Bestellung mit nur Text konnte mindestens ein Text nicht geladen werden, oder die Font oder color konnte nicht geladen werden"
         )
-    if Util.Jsonprocessing.getIfOnlyText(currentOrder):
+    if guistyle == "Waagerecht" or guistyle == "Senkrecht":
         try:
-            textAbove = Util.Jsonprocessing.getFirstLine(currentOrder)
-            textBelow = Util.Jsonprocessing.getThirdLine(currentOrder)
-            patternvorschauUser.configure(
-                image="", text=Util.Jsonprocessing.getSecondLine(currentOrder)
-            )
-
+            if guistyle == "Senkrecht":
+                textAbove = Util.Jsonprocessing.getFirstLine(currentOrder).replace(
+                    " ", " \n"
+                )
+                textBelow = Util.Jsonprocessing.getThirdLine(currentOrder).replace(
+                    " ", " \n"
+                )
+                textmitte = Util.Jsonprocessing.getSecondLine(currentOrder).replace(
+                    " ", " \n"
+                )
+            else:
+                textAbove = Util.Jsonprocessing.getFirstLine(currentOrder)
+                textBelow = Util.Jsonprocessing.getThirdLine(currentOrder)
+                textmitte = Util.Jsonprocessing.getSecondLine(currentOrder)
+            print(textAbove + textmitte + textBelow)
         except:
             print(
                 "Bei einer Bestellung mit nur Text konnte mindestens ein Text nicht geladen werden"
             )
         try:
-
             if color == "Silber":
                 color = Util.Config.getUIColor()
                 color = color["SilberColor"]
             else:
                 color = "gray0"
             if fonts in f.families():
-                fonts = f.Font(family=fonts, size=20)
+                if guistyle == "Senkrecht":
+                    fonts = f.Font(family=fonts, size=10)
+                else:
+                    fonts = f.Font(family=fonts, size=20)
                 fontnotfound.configure(text="")
                 patternvorschauUser.configure(
                     image="",
-                    text=Util.Jsonprocessing.getSecondLine(currentOrder),
+                    text=textmitte,
                     fg=color,
                     font=fonts,
                 )
@@ -550,14 +588,33 @@ def textHandlingGUI(currentOrder):
                 fontnotfound.configure(
                     text="SCHRIFTART NICHT GEFUNDEN, Sieht eventuell anders aus"
                 )
-                patternvorschauUser.configure(
-                    image="",
-                    text=Util.Jsonprocessing.getSecondLine(currentOrder),
-                    fg=color,
-                    font=("Arial", 20),
-                )
-                textunterbild.configure(text=textBelow, fg=color, font=("Arial", 20))
-                textueberbild.configure(text=textAbove, fg=color, font=("Arial", 20))
+
+                if guistyle == "Senkrecht":
+                    textunterbild.configure(
+                        text=textBelow, fg=color, font=("Arial", 10)
+                    )
+                    textueberbild.configure(
+                        text=textAbove, fg=color, font=("Arial", 10)
+                    )
+                    patternvorschauUser.configure(
+                        image="",
+                        text=textmitte,
+                        fg=color,
+                        font=("Arial", 10),
+                    )
+                else:
+                    textunterbild.configure(
+                        text=textBelow, fg=color, font=("Arial", 20)
+                    )
+                    textueberbild.configure(
+                        text=textAbove, fg=color, font=("Arial", 20)
+                    )
+                    patternvorschauUser.configure(
+                        image="",
+                        text=textmitte,
+                        fg=color,
+                        font=("Arial", 20),
+                    )
         except:
             print(
                 "Error bei der Fontverwaltung und setzen der Texte, bitte Programmierer konsultieren"
@@ -592,51 +649,45 @@ def select(currentOrder):
         prof.enable()
     global patternliste
     global objekte
+    ordernumber.set(currentOrder)
     try:
         _, farbe = Util.Config.getXMLConfig(template.get().split(".")[0])
         colorscheme.set(farbe["farbart"])
+
     except:
         print("fehler beim lesen des Templates")
-    asin = Util.Jsonprocessing.getAsin(ordernumber.get())
-    colordictS = Util.Config.getColorCodesSilver()
-    colordictB = Util.Config.getColorCodesBlack()
-    setBackground(asin, colordictB, colordictS)
-    # wenn wir kein bild haben:
-    if Util.Jsonprocessing.getIfOnlyText(currentOrder):
-        #
+    # Background Farbenverwaltung
+
+    setBackground()
+    # patternliste updaten
+
+    patternliste, hits = Util.Jsonprocessing.getOnlyPattern(
+        ordernumber.get(), delimiter
+    )
+    if not hits == 0:
+        update_dropdown()
+        pattern.set(patternliste[-1])
+    else:
         patternliste = ["Es gibt kein Bild"]
         update_dropdown()
         pattern.set("Es gibt kein Bild")
-        vorschaubild(currentOrder)
-        # Patternbehandlung
         mehrereAusgewaehlteBilder.configure(text="", fg="#9f1d35")
-        # patternvorschauUser.configure(bg=None)
-        textHandlingGUI(currentOrder)
-    else:
-        # bildhandling wenn bilder vorhanden sind
-        previewName = Util.Jsonprocessing.getPreviewImage(currentOrder)
-        patternliste, hits = Util.Jsonprocessing.getOnlyPattern(currentOrder, delimiter)
-        if not hits == 0:
-            update_dropdown()
-            pattern.set(patternliste[-1])
-        bildauswahl(None)
-        vorschaubild(currentOrder)
 
-        # texthandling
-        if hits > 1:
-            mehrereAusgewaehlteBilder.configure(
-                text="Mehrere Bilder gefunden", fg="#9f1d35"
-            )
-        else:
-            mehrereAusgewaehlteBilder.configure(text="", fg="#9f1d35")
-        textHandlingGUI(currentOrder)
-    ordernumber.set(currentOrder)
+    # gibts mehrere Bilder?
+    if hits > 1:
+        mehrereAusgewaehlteBilder.configure(
+            text="Mehrere Bilder gefunden", fg="#9f1d35"
+        )
+    else:
+        mehrereAusgewaehlteBilder.configure(text="", fg="#9f1d35")
 
     try:
         comment.configure(text=Util.Jsonprocessing.getComments(ordernumber.get()))
     except:
         print("Kommentar kann nicht angezeigt werden")
 
+    # erstmaliges belegen der GUI
+    updateVorschaubild(None)
     updateAugmentUI(objekte)
     if profiling == True:
         prof.disable()
@@ -648,7 +699,9 @@ def update_dropdown():
     menu = dropPattern["menu"]
     menu.delete(0, "end")
     for string in patternliste:
-        menu.add_command(label=string, command=tk._setit(pattern, string, bildauswahl))
+        menu.add_command(
+            label=string, command=tk._setit(pattern, string, updateVorschaubild)
+        )
 
 
 def process():
@@ -737,9 +790,10 @@ if __name__ == "__main__":
             )
             i += 1
 
-    while len(ListOfOrdersStillToDo) != 0:
+    while True:
         # Setup Main Window
         window = tk.Tk()
+
         window.protocol("WM_DELETE_WINDOW", quit)
         window.title("Lightburn Preperation")
         # window.geometry("1000x1000")
@@ -762,7 +816,8 @@ if __name__ == "__main__":
             highlightbackground="red",
             highlightthickness=2,
         )
-        overallFrame.grid(row=1, column=1)
+        overallFrame.grid(row=1, column=1, sticky="nesw")
+        # overallFrame.pack(side="left", anchor="nw")
 
         overallFrame.grid_rowconfigure(2, minsize=anzeigenmaxhöhe + 170, weight=2)
         overallFrame.grid_columnconfigure(2, minsize=anzeigenzielbreite + 50, weight=1)
@@ -772,20 +827,22 @@ if __name__ == "__main__":
             highlightbackground="green",
             highlightthickness=2,
         )
-        extendoFrame.grid(row=1, column=2)
-
+        extendoFrame.grid(row=1, column=2, sticky="nw")
+        # extendoFrame.pack(side="left", anchor="nw")
+        extendoFrame.rowconfigure(0, weight=1)
+        extendoFrame.columnconfigure(0, weight=1)
         comment = tk.Label(overallFrame, text="", wraplength=250)
         comment.grid(row=3, column=3, columnspan=1)
 
         # Vorschaubild für den User
         vorschaubildFrame = tk.Frame(
             overallFrame,
-            width=anzeigenzielbreite + 50,
+            width=anzeigenzielbreite + 10,
             height=anzeigenmaxhöhe + 100,
             highlightbackground="blue",
             highlightthickness=2,
         )
-        vorschaubildFrame.grid(row=2, column=3, sticky="nsw")
+        # vorschaubildFrame.grid(row=2, column=3, sticky="nsw")
         vorschaubildUser = tk.Label(
             vorschaubildFrame,
         )
@@ -820,6 +877,7 @@ if __name__ == "__main__":
             highlightthickness=2,
         )
         textunterbild.pack(fill="both", expand="yes")
+        patternvorschauFrame.grid(row=2, column=2, sticky="nsew", padx=10)
 
         # ErrorFrame
         frameError = tk.Frame(
@@ -830,7 +888,7 @@ if __name__ == "__main__":
             highlightthickness=2,
         )
         frameError.grid(row=1, column=1, columnspan=3, sticky="new")
-        fontnotfound = tk.Label(frameError, font=("Arial", 20))
+        fontnotfound = tk.Label(frameError, font=("Arial", 20), wraplength=500)
         fontnotfound.pack()
         mehrereAusgewaehlteBilder = tk.Label(frameError, font=("Arial", 20))
         mehrereAusgewaehlteBilder.pack()
@@ -861,20 +919,20 @@ if __name__ == "__main__":
             configFrame,
             template,
             *ListOfAvailableTemplates,
-            command=bildauswahl,
+            command=updateVorschaubild,
         )
         dropTemplate.config(width=20)
         dropTemplate.pack(anchor="w")
 
         # dropdown zur bildauswahl
         dropPattern = tk.OptionMenu(
-            configFrame, pattern, *patternliste, command=bildauswahl
+            configFrame, pattern, *patternliste, command=updateVorschaubild
         )
         dropPattern.config()
         dropPattern.pack(anchor="w")
 
         dropThresh = tk.OptionMenu(
-            configFrame, thresh, *ListOfThreshholding, command=bildauswahl
+            configFrame, thresh, *ListOfThreshholding, command=updateVorschaubild
         )
         dropThresh.config()
         dropThresh.pack(anchor="w")
@@ -882,7 +940,7 @@ if __name__ == "__main__":
         # select(ListOfOrdersStillToDo[0])
         # dropdownmenu fuer Vorschaubild schwarzweis
         dropColor = tk.OptionMenu(
-            configFrame, colorscheme, *ListOfColors, command=bildauswahl
+            configFrame, colorscheme, *ListOfColors, command=updateVorschaubild
         )
         dropColor.config(width=20)
         dropColor.pack(anchor="w")
@@ -890,7 +948,7 @@ if __name__ == "__main__":
             configFrame, from_=0, to=255, orient=tk.HORIZONTAL, length=160
         )
         threshhold.set(127)
-        threshhold.bind("<ButtonRelease-1>", bildauswahl)
+        threshhold.bind("<ButtonRelease-1>", updateVorschaubild)
         threshhold.pack(anchor="w")
         invertbutton = tk.Checkbutton(
             configFrame, text="Inverted", variable=invertVar, command=invert
@@ -910,3 +968,73 @@ if __name__ == "__main__":
         select(ListOfOrdersStillToDo[0])
 
         window.mainloop()
+
+"""def bildauswahl(dummy):
+    global bildistda
+    global currentPatternImage
+    if Util.Jsonprocessing.getIfOnlyText(ordernumber.get()):
+        return None
+    erg, hits = Util.Jsonprocessing.getOnlyPattern(ordernumber.get(), delimiter)
+    if hits == 0:
+        bildistda = False
+        patternvorschauUser.configure(image="")
+        patternvorschauUser.image = None
+        # textHandlingGUI(ordernumber.get())
+    else:
+        bildistda = True
+        try:
+            patternName = pattern.get()
+            vorschaubildpattern = Image.open(patternName)
+            asin = Util.Jsonprocessing.getAsin(ordernumber.get())
+            colordictS = Util.Config.getColorCodesSilver()
+
+            vorschaubildpattern = Util.Imageprocessing.schwarzweis(
+                colorscheme.get(), vorschaubildpattern, thresh.get(), threshhold.get()
+            )
+            # zwischenablage des bilds zum geben an process
+            currentPatternImage = vorschaubildpattern
+            patternpfad = pattern.get()
+            if pfadzuallenmotiven not in patternpfad:
+                allemotive = False
+            else:
+                allemotive = True
+            if asin in colordictS.keys():
+                vorschaubildpattern = Util.Imageprocessing.invertAlt(
+                    vorschaubildpattern
+                )
+                vorschaubildpattern = Util.Imageprocessing.weisZuSilber(
+                    vorschaubildpattern
+                )
+
+            size = Util.Imageprocessing.getscale(
+                anzeigenzielbreite, anzeigenmaxhöhe, vorschaubildpattern
+            )
+            vorschaubildpattern = vorschaubildpattern.resize(
+                size, Image.Resampling.BILINEAR
+            )
+
+            vorschaubildpattern = ImageTk.PhotoImage(vorschaubildpattern)
+            patternvorschauUser.configure(image=vorschaubildpattern)
+            patternvorschauUser.image = vorschaubildpattern
+            invertVar.set(0)
+
+        except Exception as e:
+            print(patternName + " wurde nicht gefunden, bitte überprüfen" + str(e))
+            return"""
+
+"""def vorschaubild(currentOrder):
+    global vorschaubildUser
+    try:
+        previewName = Util.Jsonprocessing.getPreviewImage(currentOrder)
+        vorschaubild = Image.open("Zips/" + currentOrder + "/" + previewName)
+        size = Util.Imageprocessing.getscale(
+            anzeigenzielbreite,
+            anzeigenmaxhöhe + 100,  # maxhöhe + 100 um für text in pattern account
+            vorschaubild,
+        )
+        vorschaubild = vorschaubild.resize(size, Image.Resampling.BILINEAR)
+        vorschaubild = ImageTk.PhotoImage(vorschaubild)
+        vorschaubildUser.configure(image=vorschaubild)
+        vorschaubildUser.image = vorschaubild
+    except:
+        print("Amazon vorschaubild konnte nicht angezeigt werden")"""
