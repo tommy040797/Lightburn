@@ -252,27 +252,27 @@ def getImage(orderid, pfad):
     gui = Util.Config.getGuiConfig()
     pfadteil = Util.Config.getConfig()
     pfadteil = pfadteil["PfadZuAllenMotiven"]
-    try:
-        file = glob.glob("Zips/" + orderid + "/*.json")
-        with open(file[0], "r", encoding="UTF-8") as f:
-            data = json.load(f)
-            if "%" in pfad:
-                pfad = pfad.replace("%", "")
-                try:
-                    ergint = pfadteil + eval(pfad) + ".png"
-                    return ergint
-                except:
-                    pass
-            elif "$" in pfad:
-                pfad = pfad.replace("$", "")
-                try:
-
-                    ergint = str(os.getcwd()) + "\Zips\\" + orderid + "\\" + eval(pfad)
-                    return ergint
-                except:
-                    pass
-    except:
-        return None
+    file = glob.glob("Zips/" + orderid + "/*.json")
+    with open(file[0], "r", encoding="UTF-8") as f:
+        data = json.load(f)
+        if "%" in pfad:
+            pfad = pfad.replace("%", "")
+            try:
+                if (eval(pfad)) == "":
+                    return None
+                ergint = pfadteil + eval(pfad) + ".png"
+                return ergint
+            except:
+                return None
+        elif "$" in pfad:
+            pfad = pfad.replace("$", "")
+            try:
+                if (eval(pfad)) == "":
+                    return None
+                ergint = str(os.getcwd()) + "\Zips\\" + orderid + "\\" + eval(pfad)
+                return ergint
+            except:
+                return None
 
 
 def getText(orderid, pfad):
