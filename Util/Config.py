@@ -31,7 +31,6 @@ def getGuiConfig():
     config = configparser.ConfigParser()
     config.optionxform = str
     config.read("gui.ini")
-    # config.read("gui.ini")
     return config._sections["Default"]
 
 
@@ -67,4 +66,11 @@ def getFontSizeConfig():
     config = configparser.ConfigParser()
     config.optionxform = str
     config.read("fontScales.ini")
+    return config._sections["Default"]
+
+
+def getPreviewGUIConfig(name):
+    config = configparser.ConfigParser()
+    config.optionxform = str
+    config.read("GUI Templates/" + name + ".ini")
     return config._sections["Default"]

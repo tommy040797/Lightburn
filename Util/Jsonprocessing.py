@@ -52,7 +52,10 @@ def getFont(orderid):
     file = glob.glob("Zips/" + orderid + "/*.json")
     with open(file[0], "r", encoding="UTF-8") as f:
         data = json.load(f)
-        fontBild = eval(gui["FontBild"])
+        try:
+            fontBild = eval(gui["FontBild"])
+        except:
+            print("font kann nicht gelesen werden, bitte config prüfen")
         try:
             fontText = eval(gui["FontText"])
         except:
