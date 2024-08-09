@@ -16,11 +16,12 @@ def getPreviewImage(orderid):
     return childerin
 
 
-def getOnlyPattern(orderid, delimiter):
+def getOnlyPattern(orderid, delimiter, guistyle):
+    specificguipath = Util.Config.getPreviewGUIConfig(guistyle)
     gui = Util.Config.getGuiConfig()
     pfad = Util.Config.getConfig()
     pfad = pfad["PfadZuAllenMotiven"]
-    liste = gui["Pattern"].split(delimiter)
+    liste = specificguipath["Bild1"].split(delimiter)
     erg = []
     file = glob.glob("Zips/" + orderid + "/*.json")
     with open(file[0], "r", encoding="UTF-8") as f:
