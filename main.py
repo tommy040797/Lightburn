@@ -55,6 +55,8 @@ bildistda = True
 profiling = False
 global vorschauobjekte
 vorschauobjekte = {}
+global patternselectors
+patternselectors = []
 
 
 def updatePreviewUI(dummy):
@@ -67,6 +69,7 @@ def updatePreviewUI(dummy):
 
 
 def previewUI(dummy):
+    print("preview rebuild")
     global bildistda
     guiTemplateToUse = Util.Config.getXMLConfig(template.get().split(".")[0])[1]["gui"]
     builddict = Util.Config.getPreviewGUIConfig(guiTemplateToUse)
@@ -81,14 +84,23 @@ def previewUI(dummy):
         except Exception as e:
             traceback.print_exception(e)
             print("deleten ging nicht")
+    for idx, item in enumerate(patternselectors):
+        try:
+            patternselectors[idx][2].destroy()
+        except:
+            pass
     try:
         vorschauobjekte.clear()
+        patternselectors.clear()
     except Exception as e:
+        print("error")
         traceback.print_exception(e)
 
     keylist = list(builddict.keys())
     valuelist = list(builddict.values())
+    counter = 0
     for idx, item in enumerate(keylist):
+        print(idx)
         nummer = idx
         if guiTemplateToUse == "Bild" or guiTemplateToUse == "Waagerecht":
             vorschauobjekte[item] = tk.Label(
@@ -98,6 +110,31 @@ def previewUI(dummy):
                 wraplength=0,
             )
             vorschauobjekte[item].pack(side="top", fill="both", expand="yes")
+            if "Bild" in item:
+                _, hits = Util.Jsonprocessing.getOnlyPattern(
+                    ordernumber.get(), delimiter, guiTemplateToUse
+                )
+            else:
+                hits = 0
+            if "Bild" in item and hits > 0:
+                patternselectors.append([])
+                # patternselectors[counter][0] = liste, [1] = stringvar, [2] = optionmenu
+                patternselectors[counter].append([])
+                patternselectors[counter][0], _ = Util.Jsonprocessing.getOnlyPattern(
+                    ordernumber.get(), delimiter, "Bild"
+                )
+                patternselectors[counter].append(tk.StringVar())
+                patternselectors[counter][1].set(patternselectors[counter][0][-1])
+                patternselectors[counter].append(
+                    tk.OptionMenu(
+                        patternFrame,
+                        patternselectors[counter][1],
+                        *patternselectors[counter][0],
+                        command=updatePreviewUI,
+                    )
+                )
+                patternselectors[counter][2].pack(anchor="w")
+                counter += 1
         elif guiTemplateToUse == "Senkrecht":
             vorschauobjekte[item] = tk.Label(
                 previewFrame,
@@ -448,6 +485,10 @@ def intermediate(evt):
         pass
 
 
+def intermediateSelect(evt):
+    select(ordernumber.get())
+
+
 def invert():
     try:
         global currentPatternImage
@@ -522,10 +563,13 @@ def textHandlingGUI(currentOrder, guistyle, builddict):
 
 def imageHandlingGUI(currentOrder):
     global currentPatternImage
+    counter = 0
     for item in vorschauobjekte:
         if "Bild" in item:
             try:
                 patternName = pattern.get()
+                print(patternName)
+                counter += 1
                 vorschaubildpattern = Image.open(patternName)
                 asin = Util.Jsonprocessing.getAsin(currentOrder)
                 colordictS = Util.Config.getColorCodesSilver()
@@ -587,9 +631,9 @@ def select(currentOrder):
 
     except:
         print("fehler beim lesen des Templates")
-
+    guiTemplateToUse = Util.Config.getXMLConfig(template.get().split(".")[0])[1]["gui"]
     patternliste, hits = Util.Jsonprocessing.getOnlyPattern(
-        ordernumber.get(), delimiter
+        ordernumber.get(), delimiter, guiTemplateToUse
     )
     if not hits == 0:
         update_dropdown()
@@ -826,16 +870,19 @@ if __name__ == "__main__":
             configFrame,
             template,
             *ListOfAvailableTemplates,
-            command=previewUI,
+            command=intermediateSelect,
         )
         dropTemplate.config(width=20)
         dropTemplate.pack(anchor="w")
 
+        patternFrame = tk.Frame(
+            overallFrame, highlightbackground="blue", highlightthickness=2
+        )
+        # patternFrame.grid(row=4, column=1, columnspan=2, sticky="new", pady=10)
         # dropdown zur bildauswahl
         dropPattern = tk.OptionMenu(
             configFrame, pattern, *patternliste, command=updatePreviewUI
         )
-        dropPattern.config()
         dropPattern.pack(anchor="w")
 
         dropThresh = tk.OptionMenu(
