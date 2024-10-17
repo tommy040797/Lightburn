@@ -6,6 +6,19 @@ import os
 import traceback
 
 
+def getTextGUI(orderid, pfad, delimiter):
+    values = pfad.split(delimiter)
+    for item in values:
+        try:
+            file = glob.glob("Zips/" + orderid + "/*.json")
+            with open(file[0], "r", encoding="UTF-8") as f:
+                data = json.load(f)
+                erg = eval(item)
+                return erg
+        except:
+            pass
+
+
 def getPreviewImage(orderid):
     gui = Util.Config.getGuiConfig()
 
@@ -17,7 +30,6 @@ def getPreviewImage(orderid):
 
 
 def getOnlyPattern(orderid, delimiter, guistyle):
-    print(guistyle)
     specificguipath = Util.Config.getPreviewGUIConfig(guistyle)
     gui = Util.Config.getGuiConfig()
     pfad = Util.Config.getConfig()
@@ -52,120 +64,28 @@ def getOnlyPattern(orderid, delimiter, guistyle):
     return erg, hits
 
 
-def getFont(orderid):
+def getFont(orderid, delimiter):
     gui = Util.Config.getGuiConfig()
-    file = glob.glob("Zips/" + orderid + "/*.json")
-    with open(file[0], "r", encoding="UTF-8") as f:
-        data = json.load(f)
-        try:
-            fontBild = eval(gui["FontBild"])
-        except:
-            print("font kann nicht gelesen werden, bitte config prüfen")
-        try:
-            fontText = eval(gui["FontText"])
-        except:
-            return fontBild
-        if getIfOnlyText(orderid):
-            return fontText
-        else:
-            return fontBild
+    try:
+        erg = getTextGUI(orderid, gui["FontBild"], delimiter)
+    except:
+        erg = getTextGUI(orderid, gui["FontText"], delimiter)
+    if erg == None:
+        print("Font konnte net gefunden werden")
+    return erg
 
 
-def getEngravingColor(orderid):
+def getEngravingColor(orderid, delimiter):
     gui = Util.Config.getGuiConfig()
-    file = glob.glob("Zips/" + orderid + "/*.json")
-    with open(file[0], "r", encoding="UTF-8") as f:
-        data = json.load(f)
-        engravingColor = eval(gui["EngravingColor"])
-    return engravingColor
+    erg = getTextGUI(orderid, gui["EngravingColor"], delimiter)
+    return erg
 
 
-def getTextBelow(orderid):
+def getComments(orderid, delimiter):
     gui = Util.Config.getGuiConfig()
-    file = glob.glob("Zips/" + orderid + "/*.json")
-    with open(file[0], "r", encoding="UTF-8") as f:
-        try:
-            data = json.load(f)
-            childerin = eval(gui["TextUnterBild"])
-            return childerin
-        except KeyError:
-            return ""
-
-
-# macht garnichts aktuell
-def getTextBelowScale(orderid):
-    file = glob.glob("Zips/" + orderid + "/*.json")
-    with open(file[0], "r", encoding="UTF-8") as f:
-        data = json.load(f)
-        try:
-            scale = data["customizationData"]["children"][0]["children"][0]["children"][
-                4
-            ]["children"][2]["children"][0]["buyerPlacement"]["scale"]["scaleX"]
-        except:
-            return None
-    return scale
-
-
-# macht auch nichts, wird durch Matrixtrafo direkt aus Json umgerechnet
-def getTextBelowRotation(orderid):
-    file = glob.glob("Zips/" + orderid + "/*.json")
-    with open(file[0], "r", encoding="UTF-8") as f:
-        data = json.load(f)
-        try:
-            scale = data["customizationData"]["children"][0]["children"][0]["children"][
-                4
-            ]["children"][2]["children"][0]["buyerPlacement"]["angleOfRotation"]
-        except:
-            return None
-    return scale
-
-
-def getTextAbove(orderid):
-    gui = Util.Config.getGuiConfig()
-    file = glob.glob("Zips/" + orderid + "/*.json")
-    with open(file[0], "r", encoding="UTF-8") as f:
-        try:
-            data = json.load(f)
-            childerin = eval(gui["TextUeberBild"])
-            return childerin
-        except KeyError:
-            return ""
-
-
-# macht garnichts aktuell
-def getTextAboveScale(orderid):
-    file = glob.glob("Zips/" + orderid + "/*.json")
-    with open(file[0], "r", encoding="UTF-8") as f:
-        data = json.load(f)
-        try:
-            scale = data["customizationData"]["children"][0]["children"][0]["children"][
-                4
-            ]["children"][2]["children"][1]["buyerPlacement"]["scale"]["scaleX"]
-        except:
-            return None
-    return scale
-
-
-# macht auch nichts, wird durch Matrixtrafo direkt aus Json umgerechnet
-def getTextAboveRotation(orderid):
-    file = glob.glob("Zips/" + orderid + "/*.json")
-    with open(file[0], "r", encoding="UTF-8") as f:
-        data = json.load(f)
-        try:
-            scale = data["customizationData"]["children"][0]["children"][0]["children"][
-                4
-            ]["children"][2]["children"][1]["buyerPlacement"]["angleOfRotation"]
-        except:
-            return None
-    return scale
-
-
-def getComments(orderid):
-    gui = Util.Config.getGuiConfig()
-    file = glob.glob("Zips/" + orderid + "/*.json")
-    with open(file[0], "r", encoding="UTF-8") as f:
-        data = json.load(f)
-        erg = eval(gui["Kommentare"])
+    erg = getTextGUI(orderid, gui["Kommentare"], delimiter)
+    if erg == None:
+        print("Kommentar konnte net gefunden werden")
     return erg
 
 
@@ -204,83 +124,42 @@ def checkIfImage(orderid):
             return True
 
 
-def getFirstLine(orderid):
+def getAsin(orderid, delimiter):
     gui = Util.Config.getGuiConfig()
-
-    file = glob.glob("Zips/" + orderid + "/*.json")
-    with open(file[0], "r", encoding="UTF-8") as f:
-        data = json.load(f)
-        try:
-            childerin1 = eval(gui["TextOnly1"])
-        except:
-            return ""
-    return childerin1
+    erg = getTextGUI(orderid, gui["Identifier"], delimiter)
+    return erg
 
 
-def getSecondLine(orderid):
-    gui = Util.Config.getGuiConfig()
-
-    file = glob.glob("Zips/" + orderid + "/*.json")
-    with open(file[0], "r", encoding="UTF-8") as f:
-        data = json.load(f)
-        try:
-            childerin1 = eval(gui["TextOnly2"])
-        except:
-            return ""
-    return childerin1
-
-
-def getThirdLine(orderid):
-    gui = Util.Config.getGuiConfig()
-
-    file = glob.glob("Zips/" + orderid + "/*.json")
-    with open(file[0], "r", encoding="UTF-8") as f:
-        data = json.load(f)
-        try:
-            childerin1 = eval(gui["TextOnly3"])
-        except:
-            return ""
-    return childerin1
-
-
-def getAsin(orderid):
-    gui = Util.Config.getGuiConfig()
-
-    file = glob.glob("Zips/" + orderid + "/*.json")
-    with open(file[0], "r", encoding="UTF-8") as f:
-        data = json.load(f)
-        try:
-            childerin1 = eval(gui["Identifier"])
-        except:
-            return ""
-    return childerin1
-
-
-def getImage(orderid, pfad):
+def getImage(orderid, pfad, delimiter):
     gui = Util.Config.getGuiConfig()
     pfadteil = Util.Config.getConfig()
     pfadteil = pfadteil["PfadZuAllenMotiven"]
     file = glob.glob("Zips/" + orderid + "/*.json")
+    try:
+        liste = pfad.split(delimiter)
+    except:
+        return None, 0
     with open(file[0], "r", encoding="UTF-8") as f:
         data = json.load(f)
-        if "%" in pfad:
-            pfad = pfad.replace("%", "")
-            try:
-                if (eval(pfad)) == "":
+        for item in liste:
+            if "%" in item:
+                pfad = item.replace("%", "")
+                try:
+                    if (eval(pfad)) == "":
+                        return None
+                    ergint = pfadteil + eval(pfad) + ".png"
+                    return ergint
+                except:
                     return None
-                ergint = pfadteil + eval(pfad) + ".png"
-                return ergint
-            except:
-                return None
-        elif "$" in pfad:
-            pfad = pfad.replace("$", "")
-            try:
-                if (eval(pfad)) == "":
+            elif "$" in item:
+                pfad = item.replace("$", "")
+                try:
+                    if (eval(pfad)) == "":
+                        return None
+                    ergint = str(os.getcwd()) + "\Zips\\" + orderid + "\\" + eval(pfad)
+                    return ergint
+                except:
                     return None
-                ergint = str(os.getcwd()) + "\Zips\\" + orderid + "\\" + eval(pfad)
-                return ergint
-            except:
-                return None
 
 
 def getText(orderid, pfad):
@@ -292,10 +171,4 @@ def getText(orderid, pfad):
             return erg
     except Exception as e:
         # traceback.print_exception(e)
-        print(
-            "kein problem, den pfad gibts nur nichtbei der bestelltung"
-            + orderid
-            + ", bei der methode showtext"
-            + pfad
-        )
-        return None
+        raise

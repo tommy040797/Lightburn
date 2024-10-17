@@ -12,6 +12,8 @@ import logging
 import traceback
 import numpy as np
 
+import Util.Jsonprocessing
+
 logger = logging.getLogger(__name__)
 
 
@@ -57,12 +59,12 @@ def processxml(
                 erg = ""
                 key[1] = key[1].capitalize()
                 values = valuelist[keys.index(key)].split(delimiter)
+
                 # Wenn rohe zuordnung, und der letzte eintrag der liste gewünscht ist valueElement ist das value element!!!
                 if key[2] == "zuordnung":
                     erg, fail = Pfadparsing(
                         values, rest["PfadZuAllenMotiven"], orderid, erg, data
                     )
-
                     eval(key[0]).set(key[1], str(erg))
                 elif key[2] == "bildbreite":
                     img = eval(values[0]).get(values[1])
@@ -87,10 +89,12 @@ def processxml(
                     )
                     eval(key[0]).set(key[1], erg)
                 elif key[2] == "matrixtrafo":
-                    try:
-                        angle = eval(values[0])
-                    except:
-                        angle = 0
+                    for item in values:
+                        try:
+                            angle = eval(item)
+                            continue
+                        except:
+                            angle = 0
                     # mit dem uhrzeigersinn rotieren
                     angle = -angle
                     # string in verwertbare floatwerte in einer liste splitten
@@ -123,7 +127,12 @@ def processxml(
                     string = s1[1:]
                     eval(key[0]).text = string
                 elif key[2] == "laser":
-                    farbe = eval(values[0])
+                    for item in values:
+                        try:
+                            farbe = eval(item)
+                            continue
+                        except:
+                            pass
                     pfad = eval(key[0])
 
                     silber, schwarz = Util.Config.getLaserColors()
@@ -199,7 +208,6 @@ def processxml(
                             mitteVonItemInPixeln, mitteVonPlacementPane
                         )
                         verschiebevalue[1] = verschiebevalue[1] * -1
-                        # print(verschiebevalue)
                         xverschiebung = verschiebevalue[0] / pixelInMM
                         yverschiebung = verschiebevalue[1] / pixelInMM
                         try:
@@ -250,13 +258,12 @@ def processxml(
                 + "hat einen error ausgeworfen, bitte anderes Template verwenden oder Christian kontaktieren"
             )
 
-    # print(keys)
-
 
 def Pfadparsing(values, pfad, orderid, erg, data):
     fail = 0
     for valueElement in values:
         valueElement = str(valueElement)
+
         if "%" in valueElement:
             valueElement = valueElement.replace("%", "")
             try:
@@ -272,5 +279,14 @@ def Pfadparsing(values, pfad, orderid, erg, data):
                 fail += 1
                 pass
         else:
-            erg = eval(valueElement)
+            try:
+                erg = Util.Jsonprocessing.getText(orderid, valueElement)
+                return erg, fail
+            except:
+                fail += 1
+                erg = ""
+                print(
+                    "Anscheinend Champagnerfarben, da erster Pfad nicht gefunden werden konnte"
+                )
+                pass
     return erg, fail
