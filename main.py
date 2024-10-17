@@ -63,13 +63,11 @@ def updatePreviewUI(dummy):
     global currentPatternImage
     guiTemplateToUse = Util.Config.getXMLConfig(template.get().split(".")[0])[1]["gui"]
     builddict = Util.Config.getPreviewGUIConfig(guiTemplateToUse)
-
     textHandlingGUI(ordernumber.get(), guiTemplateToUse, builddict)
     imageHandlingGUI(ordernumber.get())
 
 
 def previewUI(dummy):
-    print("preview rebuild")
     global bildistda
     guiTemplateToUse = Util.Config.getXMLConfig(template.get().split(".")[0])[1]["gui"]
     builddict = Util.Config.getPreviewGUIConfig(guiTemplateToUse)
@@ -93,14 +91,12 @@ def previewUI(dummy):
         vorschauobjekte.clear()
         patternselectors.clear()
     except Exception as e:
-        print("error")
         traceback.print_exception(e)
 
     keylist = list(builddict.keys())
     valuelist = list(builddict.values())
     counter = 0
     for idx, item in enumerate(keylist):
-        print(idx)
         nummer = idx
         if guiTemplateToUse == "Bild" or guiTemplateToUse == "Waagerecht":
             vorschauobjekte[item] = tk.Label(
@@ -167,7 +163,7 @@ def updateAugmentUI(objekte):
         nummer = int(key[2]) + breitegrid * (int(key[1]) - 1) - 1
         if key[0] == "showimage":
             img = Util.Jsonprocessing.getImage(
-                ordernumber.get(), valuelist[keys.index(key)]
+                ordernumber.get(), valuelist[keys.index(key)], delimiter
             )
             objekte[nummer][1].configure(image="")
             objekte[nummer][1].image = None
@@ -205,9 +201,10 @@ def updateAugmentUI(objekte):
 
             for i in range(len(values)):
                 objekte[nummer][i + 1].config(
-                    text=Util.Jsonprocessing.getText(ordernumber.get(), values[i])
+                    text=Util.Jsonprocessing.getTextGUI(
+                        ordernumber.get(), values[i], delimiter
+                    )
                 )
-            # print(Util.Jsonprocessing.getText(ordernumber.get(), values[i]))
 
 
 def augmentUI(parent):
@@ -290,7 +287,6 @@ def augmentUI(parent):
         if i % breitegrid == 0:
             j += 1
         frames[i].grid(row=j, column=(i % breitegrid) + 1)
-        # print(j, (i % breitegrid) + 1)
     for key in keys:
         nummer = int(key[2]) + breitegrid * (int(key[1]) - 1) - 1
         if key[0] == "bilderauswahl":
@@ -451,7 +447,7 @@ def IrfanUI(parent, gridx, gridy, rowspan, columnspan, pack):
 
 
 def setBackground():
-    asin = Util.Jsonprocessing.getAsin(ordernumber.get())
+    asin = Util.Jsonprocessing.getAsin(ordernumber.get(), delimiter)
     colordictS = Util.Config.getColorCodesSilver()
     colordictB = Util.Config.getColorCodesBlack()
     if asin in colordictB.keys():
@@ -509,7 +505,7 @@ def invert():
             return
 
         currentPatternImage = vorschaubildpattern
-        asin = Util.Jsonprocessing.getAsin(ordernumber.get())
+        asin = Util.Jsonprocessing.getAsin(ordernumber.get(), delimiter)
         colordictS = Util.Config.getColorCodesSilver()
         if asin in colordictS.keys():
             vorschaubildpattern = Util.Imageprocessing.weisZuSilber(vorschaubildpattern)
@@ -531,8 +527,8 @@ def invert():
 
 
 def textHandlingGUI(currentOrder, guistyle, builddict):
-    fonts = Util.Jsonprocessing.getFont(currentOrder)
-    color = Util.Jsonprocessing.getEngravingColor(currentOrder)
+    fonts = Util.Jsonprocessing.getFont(currentOrder, delimiter)
+    color = Util.Jsonprocessing.getEngravingColor(currentOrder, delimiter)
     if color == "Silber":
         color = Util.Config.getUIColor()
         color = color["SilberColor"]
@@ -546,7 +542,7 @@ def textHandlingGUI(currentOrder, guistyle, builddict):
         fontnotfound.configure(text="")
     else:
         fontnotfound.configure(
-            text="SCHRIFTART NICHT GEFUNDEN, Sieht eventuell anders aus"
+            text="SCHRIFTART NICHT GEFUNDEN, Sieht eventuell anders aus" + fonts
         )
         if guistyle == "Senkrecht":
             fonts = ("Arial", 10)
@@ -554,7 +550,9 @@ def textHandlingGUI(currentOrder, guistyle, builddict):
             fonts = ("Arial", 20)
     for item in vorschauobjekte:
         if "Text" in item:
-            texttoscreen = Util.Jsonprocessing.getText(currentOrder, builddict[item])
+            texttoscreen = Util.Jsonprocessing.getTextGUI(
+                currentOrder, builddict[item], delimiter
+            )
             if guistyle == "Senkrecht":
                 texttoscreen = texttoscreen.replace(" ", " \n")
 
@@ -568,10 +566,9 @@ def imageHandlingGUI(currentOrder):
         if "Bild" in item:
             try:
                 patternName = pattern.get()
-                print(patternName)
                 counter += 1
                 vorschaubildpattern = Image.open(patternName)
-                asin = Util.Jsonprocessing.getAsin(currentOrder)
+                asin = Util.Jsonprocessing.getAsin(currentOrder, delimiter)
                 colordictS = Util.Config.getColorCodesSilver()
                 vorschaubildpattern = Util.Imageprocessing.schwarzweis(
                     colorscheme.get(),
@@ -653,7 +650,9 @@ def select(currentOrder):
         mehrereAusgewaehlteBilder.configure(text="", fg="#9f1d35")
 
     try:
-        comment.configure(text=Util.Jsonprocessing.getComments(ordernumber.get()))
+        comment.configure(
+            text=Util.Jsonprocessing.getComments(ordernumber.get(), delimiter)
+        )
     except:
         print("Kommentar kann nicht angezeigt werden")
 
@@ -766,7 +765,7 @@ if __name__ == "__main__":
         window = tk.Tk()
 
         window.protocol("WM_DELETE_WINDOW", quit)
-        window.title("Lightburn Preperation")
+        window.title("Lightburn Preperation, Dynamic Preview 0.1")
         # window.geometry("1000x1000")
         ordernumber = tk.StringVar()
         ordernumber.set(ListOfOrdersStillToDo[0])
@@ -922,5 +921,6 @@ if __name__ == "__main__":
         objekte = augmentUI(extendoFrame)
 
         select(ListOfOrdersStillToDo[0])
+        # window.eval("tk::PlaceWindow . center")
 
         window.mainloop()
