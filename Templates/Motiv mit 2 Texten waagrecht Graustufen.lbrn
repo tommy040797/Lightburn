@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<LightBurnProject AppVersion="1.6.03" FormatVersion="0" MaterialHeight="0" MirrorX="False" MirrorY="False">
+    <Thumbnail Source=""/>
+    <VariableText>
+        <Start Value="0"/>
+        <End Value="17"/>
+        <Current Value="0"/>
+        <Increment Value="1"/>
+        <AutoAdvance Value="1"/>
+        <Filename Value="C:\DIY\Laser\Auftragsbearbeitung\Liste.csv"/>
+    </VariableText>
+    <UIPrefs>
+        <Optimize_ByLayer Value="0"/>
+        <Optimize_ByGroup Value="-1"/>
+        <Optimize_ByPriority Value="1"/>
+        <Optimize_WhichDirection Value="0"/>
+        <Optimize_InnerToOuter Value="1"/>
+        <Optimize_ByDirection Value="0"/>
+        <Optimize_ReduceTravel Value="1"/>
+        <Optimize_HideBacklash Value="0"/>
+        <Optimize_ReduceDirChanges Value="0"/>
+        <Optimize_ChooseCorners Value="0"/>
+        <Optimize_AllowReverse Value="1"/>
+        <Optimize_RemoveOverlaps Value="0"/>
+        <Optimize_OptimalEntryPoint Value="1"/>
+        <Optimize_OverlapDist Value="0.025"/>
+    </UIPrefs>
+    <CutSetting type="Scan">
+        <index Value="0"/>
+        <name Value="Text unten"/>
+        <minPower Value="10"/>
+        <maxPower Value="10"/>
+        <maxPower2 Value="10"/>
+        <speed Value="133.3333"/>
+        <overscanPercent Value="1.5"/>
+        <forceConstantPower Value="1"/>
+        <priority Value="0"/>
+        <tabCount Value="1"/>
+        <tabCountMax Value="1"/>
+    </CutSetting>
+    <CutSetting type="Scan">
+        <index Value="11"/>
+        <name Value="Text oben"/>
+        <minPower Value="10"/>
+        <maxPower Value="10"/>
+        <maxPower2 Value="10"/>
+        <speed Value="133.3333"/>
+        <overscanPercent Value="1.5"/>
+        <priority Value="1"/>
+        <tabCount Value="1"/>
+        <tabCountMax Value="1"/>
+    </CutSetting>
+      <CutSetting_Img type="Image">
+        <index Value="0"/>
+        <name Value="Bild"/>
+        <minPower Value="10"/>
+        <maxPower Value="100"/>
+        <maxPower2 Value="100"/>
+        <speed Value="83.3333"/>
+        <overscanPercent Value="1.5"/>
+        <interval Value="0.0901"/>
+        <priority Value="2"/>
+        <tabCount Value="1"/>
+        <tabCountMax Value="1"/>
+        <ditherMode Value="grayscale"/>
+        <dpi Value="281"/>
+    </CutSetting_Img>
+    <Shape Type="Text" CutIndex="11" Font="Lato,-1,100,5,50,0,0,0,0,0" Str="Ich Liebe Dich!" H="7.830081" LS="0" LnS="0" Ah="1" Av="2" OldWidth="1" Weld="1" VariableOffset="1" HasBackupPath="0">
+        <XForm>-1.6292121e-07 -1 1.0000032 -1.6292068e-07 130.19598 120</XForm>
+    </Shape>
+    <Shape Type="Text" CutIndex="0" Font="Lato,-1,100,5,50,0,0,0,0,0" Str="Nadine" H="7.8298168" LS="0" LnS="0" Ah="1" Av="0" OldWidth="1" Weld="1" VariableOffset="1" HasBackupPath="0">
+        <XForm>-1.6292121e-07 -1 1.0000032 -1.6292068e-07 58.199562 120</XForm>
+    </Shape>
+    <Shape Type="Bitmap" CutIndex="0" W="70" H="52" Gamma="1" Contrast="0" Brightness="0" EnhanceAmount="0" EnhanceRadius="0" EnhanceDenoise="0" File="C:/DIY/Laser/Motive/hai.png" Data="">
+        <XForm>0 -0.74999982 0.75000232 0 92.000137 120</XForm>
+    </Shape>
+    <CutSetting type="Tool">
+        <index Value="30"/>
+        <name Value="T1"/>
+        <priority Value="3"/>
+    </CutSetting>	
+    <Shape Type="Rect" CutIndex="30" Locked="1" W="140" H="239" Cr="0">
+        <XForm>1 0 0 1 100 119.5</XForm>
+    </Shape>
+    <Shape Type="Path" CutIndex="30">
+        <XForm>1.0608513 0 0 2.5325904 -2.1217027 -242.16171</XForm>
+        <V vx="15.084473" vy="128.02075" c1x="9.9059134" c1y="127.74915"/>
+        <V vx="15.846191" vy="128.07886"/>
+        <V vx="16.139648" vy="128.11597"/>
+        <V vx="16.139648" vy="157.88672" c0x="10.617435" c0y="158.57332"/>
+        <V vx="2" vy="151.5647" c1x="5.170475" c1y="156.13792"/>
+        <V vx="2" vy="134.43799" c0x="4.9555769" c0y="130.17702"/>
+        <P T="L" p0="0" p1="1"/>
+        <P T="L" p0="1" p1="2"/>
+        <P T="L" p0="2" p1="3"/>
+        <P T="B" p0="3" p1="4"/>
+        <P T="L" p0="4" p1="5"/>
+        <P T="B" p0="5" p1="0"/>
+    </Shape>
+    <Shape Type="Rect" CutIndex="30" W="155" H="76.000008" Cr="0">
+        <XForm>1 0 0 1 92.5 120</XForm>
+    </Shape>
+    <Notes ShowOnLoad="0" Notes=""/>
+</LightBurnProject>
